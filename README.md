@@ -7,6 +7,7 @@ Generate text, images, and voice across platforms - browser and servers. NodeJS,
 ## Features
 - Simple and intuitive API
 - Supports text, image, and voice generation
+- Count tokens and costs
 - Cross-platform: Use it with JavaScript or TypeScript in various environments
 
 ## Installation
