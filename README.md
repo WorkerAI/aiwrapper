@@ -23,7 +23,7 @@ yarn add aiwrapper
 
 ### Deno
 ```typescript
-import * as aiwrapper from "<module_url>";
+import * as aiwrapper from "https://deno.land/x/aiwrapper";
 ```
 
 ## Quick Start
@@ -42,7 +42,7 @@ console.log(answer);
 import { Img } from "aiwrapper";
 
 const img = Img.openai({ apiKey });
-const image = await Img.ask('A portrait of a cute cat');
+const image = await img.ask('A portrait of a cute cat');
 
 console.log(image);
 ```
