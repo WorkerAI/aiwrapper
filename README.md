@@ -1,6 +1,6 @@
 # AIWrapper
 
-[AIWrapper](https://aiwrapper.org) is a Universal AI Wrapper for JavaScript & TypeScript
+[AIWrapper](https://aiwrapper.org) is a neat AI wrapper for JavaScript & TypeScript
 
 Generate text, images, and voice across platforms - browser and servers. NodeJS, Deno, Bun, React, Svelte, and more. It's framework independent.
 
