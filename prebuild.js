@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as glob from 'glob';
 import { fileURLToPath } from 'url';
 
-console.log("Preparing files for node source without .ts extentions...");
+console.log("Preparing files for node source without .ts extensions...");
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
