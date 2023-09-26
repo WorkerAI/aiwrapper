@@ -1,0 +1,35 @@
+{
+  "type": "module",
+  "scripts": {
+    "prebuild": "node prebuild.js",
+    "build": "tsc",
+    "postbuild": "node postbuild.js"
+  },
+  "dependencies": {
+    "axios": "^1.5.0",
+    "glob": "^10.3.7"
+  },
+  "name": "aiwrapper",
+  "description": "A simple wrapper for OpenAI API",
+  "version": "0.0.0",
+  "main": "nodeEntry.js",
+  "allowJs": true,
+  "keywords": [
+    "AI",
+    "AI Wrapper",
+    "OpenAI",
+    "LLM",
+    "Generative AI",
+    "GPT-4"
+  ],
+  "author": "Dmitry Kury (https://dkury.com)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WorkerAI/aiwrapper.git"
+  },
+  "homepage": "https://github.com/WorkerAI/aiwrapper",
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}
