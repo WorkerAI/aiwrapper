@@ -10,12 +10,16 @@ import { Lang } from "./lang/index.js";
 import { setHttpRequestImpl } from "./httpRequest.js";
 import { setProcessResponseStreamImpl } from "./processResponseStream.js";
 import processLinesFromStream from "./lang/processLinesFromStream.js";
-import nodeFetch from "node-fetch";
+
+let nodeFetch;
+const isInNodeServer = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
+if (isInNodeServer) {
+  nodeFetch = require("node-fetch");
+}
 
 // For HTTP calls from Node.
 // Here we decide between "node-fetch" in NodeJS and a regular fetch in a browser to make HTTP requests
 setHttpRequestImpl((url, options) => {
-  const isInNodeServer = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
   if (isInNodeServer) {
     // Because NodeJS doesn't have browser's fetch yet
     return nodeFetch(url, options);
@@ -24,8 +28,6 @@ setHttpRequestImpl((url, options) => {
   // A regular browser's fetch
   return fetch(url, options);
 });
-
-const isInNodeServer = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
 
 if (isInNodeServer) {
   // For processing response streams from Node.
