@@ -1,4 +1,4 @@
-import { Tokenizer, Tokenizer_cl100k_base } from "../tokens/tokenizer.ts";
+import { Tokenizer, Tokenizer_cl100k_base } from "./tokens/tokenizer.ts";
 
 /**
  * Supported Language Models.

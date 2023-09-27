@@ -1,7 +1,8 @@
 import { Tokenizer } from '../../tokens/tokenizer.ts';
-import { getTokenizerBasedOnModel, LangModelNames } from '../info.ts';
+import { getTokenizerBasedOnModel, LangModelNames } from '../../info.ts';
 import { LangTokensFlow, LanguageModel, calcLangPrice, processSSEResponse } from '../lang.ts';
 import { httpRequest as fetch } from '../../httpRequest.ts';
+import { processResponseStream } from '../../processResponseStream.ts';
 
 export type OpenAILangOptions = {
   apiKey: string;
@@ -101,7 +102,9 @@ export class OpenAILang implements LanguageModel {
         throw new Error(err);
       });
 
-    await processSSEResponse(response, onData);
+    await processResponseStream(response, onData);
+  
+    //await processSSEResponse(response, onData);
 
     return tokens.answer;
   }

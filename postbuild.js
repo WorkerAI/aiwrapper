@@ -12,6 +12,12 @@ const buildDir = path.join(__dirname, 'js_build');
 const addJsExtensionToBuild = () => {
   const files = glob.sync(`${buildDir}/**/*.js`);
   files.forEach((filePath) => {
+    // Skip if the file is the entry for NPM package.
+    // We don't need to mess with it.
+    if (path.basename(filePath) === 'nodeEntry.js') {
+      return;
+    }
+
     let content = fs.readFileSync(filePath, 'utf-8');
     content = content.replace(/from ['"](.+)(?<!\.js)['"]/g, (match, p1) => {
       const importWithExtension = `from "${p1}.js"`;

@@ -1,5 +1,5 @@
-import * as info from './info.ts'
-import { OpenAILang, OpenAILangOptions } from './openai/OpenAILang.ts';
+import * as info from '../info.ts'
+import { OpenAILang, OpenAILangOptions } from './openai/openAILang.ts';
 
 export class Lang {
   static openai(options: OpenAILangOptions): OpenAILang {
