@@ -1,4 +1,4 @@
-import processLinesFromStream from "./lang/processLinesFromStream.ts";
+import processLinesFromStream from "../src/lang/processLinesFromStream";
 
 // This would work only in Deno and browsers, not in Node.
 let _processResponseStream = async (response: Response, onData): Promise<void> => {

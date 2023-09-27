@@ -1,9 +1,9 @@
 {
   "type": "module",
   "scripts": {
-    "prebuild": "node prebuild.js",
+    "prebuild": "node ./node_builder/prebuild.js",
     "build": "tsc",
-    "postbuild": "node postbuild.js"
+    "postbuild": "node ./node_builder/postbuild.js"
   },
   "dependencies": {
     "node-fetch": "^3.3.2"
@@ -11,11 +11,11 @@
   "name": "aiwrapper",
   "description": "A simple wrapper for OpenAI API",
   "version": "0.0.0",
-  "main": "nodeEntry.js",
+  "main": "./js_build/nodeEntry.js",
   "allowJs": true,
   "keywords": [
     "AI",
-    "AI Wrapper",
+    "AI Wrappers",
     "OpenAI",
     "LLM",
     "Generative AI",

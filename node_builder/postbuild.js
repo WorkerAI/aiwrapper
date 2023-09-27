@@ -7,7 +7,9 @@ console.log("Adding .js extension to build files because it's required for ES6 m
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const buildDir = path.join(__dirname, 'js_build');
+const tsconfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'tsconfig.json'), 'utf8'));
+const tempSrcDir = path.resolve(__dirname, tsconfig.compilerOptions.rootDir);
+const buildDir = path.join(__dirname, tsconfig.compilerOptions.outDir);
 
 const addJsExtensionToBuild = () => {
   const files = glob.sync(`${buildDir}/**/*.js`);
@@ -30,6 +32,14 @@ const addJsExtensionToBuild = () => {
 
 addJsExtensionToBuild();
 
-// TODO: delete node_source after build
+const projectRootDir = path.resolve(__dirname);
+
+// Check if tempSrcDir is a subdirectory of our project's root directory.
+if (tempSrcDir.startsWith(projectRootDir)) {
+  // We delete the temporary sources directory.
+  fs.rmdirSync(tempSrcDir, { recursive: true });
+} else {
+  console.error('Attempted to delete a directory outside the project. Operation aborted.');
+}
 
 console.log("🥳 JS build is read in ", buildDir);

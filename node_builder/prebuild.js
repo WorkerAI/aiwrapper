@@ -8,7 +8,7 @@ console.log("Preparing files for node source without .ts extensions...");
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const srcDir = path.join(__dirname, 'src');
-const destDir = path.join(__dirname, 'node_source');
+const destDir = path.join(__dirname, 'temp_node_source');
 
 const processFiles = (filePattern) => {
   glob.sync(filePattern).forEach((filePath) => {

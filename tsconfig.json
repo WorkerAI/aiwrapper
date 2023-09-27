@@ -3,7 +3,7 @@
     "target": "ES2017",
     "module": "ES6",
     "outDir": "js_build",
-    "rootDir": "node_source",
+    "rootDir": "temp_node_source",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
@@ -12,6 +12,6 @@
     "sourceMap": true,
     "allowJs": true
   },
-  "include": ["node_source/**/*.ts", "node_source/**/*.js"],
+  "include": ["temp_node_source/**/*.ts", "temp_node_source/**/*.js"],
   "exclude": ["node_modules", "**/*.test.ts"]
 }
