@@ -12,6 +12,6 @@
     "sourceMap": true,
     "allowJs": true
   },
-  "include": ["temp_node_source/**/*.ts", "temp_node_source/**/*.js"],
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "include": ["temp_node_source/**/*"],
+  "exclude": ["node_modules", "src"]
 }

@@ -6,13 +6,12 @@ import { fileURLToPath } from 'url';
 console.log("Adding .js extension to build files because it's required for ES6 modules...");
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const tsconfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'tsconfig.json'), 'utf8'));
-const tempSrcDir = path.resolve(__dirname, tsconfig.compilerOptions.rootDir);
-const buildDir = path.join(__dirname, tsconfig.compilerOptions.outDir);
+const rootDir = path.resolve(__dirname, '..');
+const tsconfig = JSON.parse(fs.readFileSync(path.resolve(rootDir, 'tsconfig.json'), 'utf8'));
+const srcDir = path.join(rootDir, tsconfig.compilerOptions.outDir);
 
 const addJsExtensionToBuild = () => {
-  const files = glob.sync(`${buildDir}/**/*.js`);
+  const files = glob.sync(`${srcDir}/**/*.js`);
   files.forEach((filePath) => {
     // Skip if the file is the entry for NPM package.
     // We don't need to mess with it.
@@ -32,14 +31,4 @@ const addJsExtensionToBuild = () => {
 
 addJsExtensionToBuild();
 
-const projectRootDir = path.resolve(__dirname);
-
-// Check if tempSrcDir is a subdirectory of our project's root directory.
-if (tempSrcDir.startsWith(projectRootDir)) {
-  // We delete the temporary sources directory.
-  fs.rmdirSync(tempSrcDir, { recursive: true });
-} else {
-  console.error('Attempted to delete a directory outside the project. Operation aborted.');
-}
-
-console.log("🥳 JS build is read in ", buildDir);
+console.log("🥳 JS build is read in ", srcDir);
