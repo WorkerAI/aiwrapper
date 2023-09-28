@@ -1,25 +1,21 @@
 # AIWrapper
+A Universal AI Wrapper for JavaScript & TypeScript
 
-[AIWrapper](https://aiwrapper.org) is a neat AI wrapper for JavaScript & TypeScript
-
-Generate text, images, and voice across platforms - browser and servers. NodeJS, Deno, Bun, React, Svelte, and more. It's framework independent.
+Generate text, images, and voice from anywhere—servers, browsers and apps. It works in anything that runs JavaScript.
 
 ## Features
-- Simple and intuitive API
-- Supports text, image, and voice generation
-- Count tokens and costs
-- Cross-platform: Use it with JavaScript or TypeScript in various environments
+- Generate text, images, and voice with a simple API
+- Easily calculate cost of usage
+- Output valid JSON & Schemas from LLMs
+- Swap models quickly or chain different models together
+- Use it with JavaScript or TypeScript from anywhere
 
 ## Installation
+Install with npm, import in Deno by URL or download and use directly.
 
 ### NPM
 ```bash
 npm install aiwrapper
-```
-
-### Yarn
-```bash
-yarn add aiwrapper
 ```
 
 ### Deno
@@ -33,7 +29,7 @@ import * as aiwrapper from "https://deno.land/x/aiwrapper";
 ```javascript
 import { Lang } from "aiwrapper";
 
-const lang = Lang.openai({ apiKey });
+const lang = Lang.openai({ apiKey: "YOUR KEY" });
 const answer = await lang.ask("Say hi!");
 console.log(answer);
 ```
