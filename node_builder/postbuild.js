@@ -3,8 +3,6 @@ import * as path from 'path';
 import * as glob from 'glob';
 import { fileURLToPath } from 'url';
 
-console.log("Adding .js extension to build files because it's required for ES6 modules...");
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const tsconfig = JSON.parse(fs.readFileSync(path.resolve(rootDir, 'tsconfig.json'), 'utf8'));
@@ -29,6 +27,15 @@ const addJsExtensionToBuild = () => {
   });
 };
 
-addJsExtensionToBuild();
+const postbuild = async () => {
+  console.log("FINAL STEPS. Adding .js extension to build files because it's required for ES6 modules...");
+  addJsExtensionToBuild();
+  // @TODO: Remove the temp build folder.
+  //console.log("Removing the temp build folder...");
 
-console.log("🥳 JS build is read in ", srcDir);
+  console.log("🥳 🎉 🍾  JavaScript build is ready to use from: ", srcDir);
+};
+
+(async () => {
+  await postbuild();
+})();

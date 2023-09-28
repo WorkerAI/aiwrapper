@@ -53,7 +53,7 @@ const prebuild = async () => {
   copyFilesFromDir(`${srcDir}/**/*.{js,ts}`);
   console.log("3. Removing .ts extensions from files in ", outDir);
   removeTsExtensions(`${outDir}/**/*.{js,ts}`);
-  console.log("✅ PREBUILD");
+  console.log("✅ PRE-BUILD");
 };
 
 (async () => {
