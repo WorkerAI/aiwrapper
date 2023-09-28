@@ -6,7 +6,7 @@
 
 // **NOTE**: we import with ".js" at the end because this will work with
 // compiled JS files.
-import { Lang } from "./lang/index.js";
+import { Lang, LangVecs } from "./lang/index.js";
 import { setHttpRequestImpl } from "./httpRequest.js";
 import { setProcessResponseStreamImpl } from "./processResponseStream.js";
 import processLinesFromStream from "./lang/processLinesFromStream.js";
@@ -14,7 +14,7 @@ import processLinesFromStream from "./lang/processLinesFromStream.js";
 let nodeFetch;
 const isInNodeServer = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
 if (isInNodeServer) {
-  nodeFetch = require("node-fetch");
+  nodeFetch = await import('node-fetch').then(module => module.default);
 }
 
 // For HTTP calls from Node.
@@ -60,4 +60,4 @@ if (isInNodeServer) {
 }
 
 
-export { Lang };
+export { Lang, LangVecs };

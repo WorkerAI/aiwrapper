@@ -16,6 +16,7 @@ const repoRootDir = path.resolve(__dirname, '..');
 const tsconfig = JSON.parse(fs.readFileSync(path.resolve(repoRootDir, 'tsconfig.json'), 'utf8'));
 const srcDir = path.join(repoRootDir, 'src');
 const outDir = path.join(repoRootDir, tsconfig.compilerOptions.rootDir);
+const futureOutDir = path.join(repoRootDir, tsconfig.compilerOptions.outDir);
 
 const copyFilesFromDir = (filePattern) => {
   // Copy files from actual source to a build folder.
@@ -36,8 +37,8 @@ const removeTsExtensions = (filePattern) => {
 
 const cleanOutDir = async () => {
   try {
-    await fs.promises.access(outDir);
-    await fs.promises.rm(outDir, { recursive: true });
+    await fs.promises.access(futureOutDir);
+    await fs.promises.rm(futureOutDir, { recursive: true });
   } catch (error) {
     if (error.code !== 'ENOENT') {
       throw error;

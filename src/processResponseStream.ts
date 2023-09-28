@@ -1,7 +1,7 @@
 import processLinesFromStream from "./lang/processLinesFromStream.ts";
 
 // This would work only in Deno and browsers, not in Node.
-let _processResponseStream = async (response: Response, onData): Promise<void> => {
+let _processResponseStream = (response: Response, onData): Promise<void> => {
   const reader = response.body!.getReader();
   let decoder = new TextDecoder("utf-8");
   let rawData = "";

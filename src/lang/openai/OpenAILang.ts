@@ -1,6 +1,6 @@
 import type { Tokenizer } from '../../tokens/tokenizer.ts';
 import { getTokenizerBasedOnModel, LangModelNames } from '../../info.ts';
-import { LangResult, LanguageModel, calcLangPrice } from '../lang.ts';
+import { LangResult, LanguageModel } from '../lang.ts';
 import { httpRequest as fetch } from '../../httpRequest.ts';
 import { processResponseStream } from '../../processResponseStream.ts';
 import { Lang } from '../index.ts';
