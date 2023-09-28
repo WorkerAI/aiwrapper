@@ -11,6 +11,11 @@
   "name": "aiwrapper",
   "description": "A simple wrapper for OpenAI API",
   "version": "0.0.0",
+  "files": [
+    "js_build/",
+    "LICENSE"
+
+  ],
   "main": "./js_build/nodeEntry.js",
   "allowJs": true,
   "keywords": [
