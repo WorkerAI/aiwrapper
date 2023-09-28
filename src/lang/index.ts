@@ -1,3 +1,4 @@
 import { Lang } from "./lang.ts";
+import { LangVecs } from "./langVecs.ts";
 
-export { Lang };
+export { Lang, LangVecs };

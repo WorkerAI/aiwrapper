@@ -1,40 +1,41 @@
-import { Tokenizer } from '../../tokens/tokenizer.ts';
+import type { Tokenizer } from '../../tokens/tokenizer.ts';
 import { getTokenizerBasedOnModel, LangModelNames } from '../../info.ts';
 import { LangResult, LanguageModel, calcLangPrice } from '../lang.ts';
 import { httpRequest as fetch } from '../../httpRequest.ts';
 import { processResponseStream } from '../../processResponseStream.ts';
+import { Lang } from '../index.ts';
 
 export type OpenAILangOptions = {
   apiKey: string;
   model?: LangModelNames;
   systemPrompt?: string;
-  customCalcPrice?: (inTokens: number, outTokens: number) => string;
+  customCalcCost?: (inTokens: number, outTokens: number) => string;
 }
 
 export type OpenAILangConfig = {
   apiKey: string;
-  model: LangModelNames;
+  name: LangModelNames;
   systemPrompt: string;
-  calcPrice: (inTokens: number, outTokens: number) => string;
+  calcCost: (inTokens: number, outTokens: number) => string;
 };
 
 export class OpenAILang implements LanguageModel {
-  readonly model: string;
+  readonly name: string;
   _config: OpenAILangConfig;
   _tokenizer: Tokenizer;
 
   constructor(options: OpenAILangOptions) {
     this._config = this._getConfig(options);
-    this.model = this._config.model;
-    this._tokenizer = getTokenizerBasedOnModel(this._config.model);
+    this.name = this._config.name;
+    this._tokenizer = getTokenizerBasedOnModel(this._config.name);
   }
 
-  _getConfig(options: OpenAILangOptions) {
+  _getConfig(options: OpenAILangOptions): OpenAILangConfig {
     return {
       apiKey: options.apiKey,
-      model: options.model || "gpt-4",
+      name: options.model || "gpt-4",
       systemPrompt: options.systemPrompt || `You are a helpful assistant.`,
-      calcPrice: options.customCalcPrice || this._defaultCalcPrice,
+      calcCost: options.customCalcCost || this._defaultCalcCost,
     };
   }
 
@@ -42,7 +43,7 @@ export class OpenAILang implements LanguageModel {
     throw new Error("Method not implemented.");
   }
 
-  async ask(prompt: string, onStream?): Promise<string> {
+  async ask(prompt: string, onResult: (result: LangResult) => void): Promise<string> {
     const result: LangResult = {
       answer: "",
       totalTokens: 0,
@@ -57,7 +58,7 @@ export class OpenAILang implements LanguageModel {
     const onData = (data) => {
       if (data.finished) {
         result.finished = true;
-        onStream?.(result);
+        onResult?.(result);
         return;
       }
 
@@ -69,9 +70,9 @@ export class OpenAILang implements LanguageModel {
         result.answer += deltaContent;
         result.totalTokens = tokensInSystemPrompt + tokensInPrompt + this._tokenizer.encode(result.answer).length;
         // We do it from the config because users may want to set their own price calculation function.
-        result.totalPrice = this._config.calcPrice(tokensInSystemPrompt + tokensInPrompt, this._tokenizer.encode(result.answer).length);
+        result.totalPrice = this._config.calcCost(tokensInSystemPrompt + tokensInPrompt, this._tokenizer.encode(result.answer).length);
 
-        onStream?.(result);
+        onResult?.(result);
       }
     }
 
@@ -84,7 +85,7 @@ export class OpenAILang implements LanguageModel {
         "Authorization": `Bearer ${this._config.apiKey}`,
       },
       body: JSON.stringify({
-        model: this._config.model,
+        model: this._config.name,
         messages: [
           {
             role: "system",
@@ -103,34 +104,11 @@ export class OpenAILang implements LanguageModel {
       });
 
     await processResponseStream(response, onData);
-  
-    //await processSSEResponse(response, onData);
 
     return result.answer;
   }
 
-  async vectorize(text: string): Promise<number[]> {
-    // @TODO: add re-tries with exponential backoff
-
-    const obj = await fetch("https://api.openai.com/v1/embeddings", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${this._config.apiKey}`,
-      },
-      body: JSON.stringify({
-        "input": text,
-        "model": "text-embedding-ada-002",
-      }),
-    }).then((response) => {
-      return response.json();
-    });
-
-    const vecs = obj.data[0].embedding;
-    return vecs;
-  }
-
-  _defaultCalcPrice = (inTokens: number, outTokens: number): string => {
-    return calcLangPrice(this._config.model, inTokens, outTokens);
+  _defaultCalcCost = (inTokens: number, outTokens: number): string => {
+    return Lang.calcLangCost(this.name, inTokens, outTokens);
   }
 }
