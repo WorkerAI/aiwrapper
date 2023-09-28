@@ -4,9 +4,13 @@ import * as glob from 'glob';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(__dirname, '..');
-const tsconfig = JSON.parse(fs.readFileSync(path.resolve(rootDir, 'tsconfig.json'), 'utf8'));
-const srcDir = path.join(rootDir, tsconfig.compilerOptions.outDir);
+const repoRootDir = path.resolve(__dirname, '..');
+const tsconfig = JSON.parse(fs.readFileSync(path.resolve(repoRootDir, 'tsconfig.json'), 'utf8'));
+const tempSourceDir = path.join(repoRootDir, tsconfig.compilerOptions.rootDir);
+if (tempSourceDir === repoRootDir) {
+  throw new Error('The temp source directory (rootDir) is the same as the actual root directory of the repository. This is not allowed.');
+}
+const srcDir = path.join(repoRootDir, tsconfig.compilerOptions.outDir);
 
 const addJsExtensionToBuild = () => {
   const files = glob.sync(`${srcDir}/**/*.js`);
@@ -27,11 +31,26 @@ const addJsExtensionToBuild = () => {
   });
 };
 
+const cleanOutTempSourceDir = async () => {
+  if (srcDir === repoRootDir) {
+    return;
+  }
+
+  try {
+    await fs.promises.access(tempSourceDir);
+    await fs.promises.rm(tempSourceDir, { recursive: true });
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+};
+
 const postbuild = async () => {
   console.log("FINAL STEPS. Adding .js extension to build files because it's required for ES6 modules...");
   addJsExtensionToBuild();
-  // @TODO: Remove the temp build folder.
-  //console.log("Removing the temp build folder...");
+  console.log("Removing the temp build folder...");
+  await cleanOutTempSourceDir();
 
   console.log("🥳 🎉 🍾  JavaScript build is ready to use from: ", srcDir);
 };
