@@ -1,6 +1,6 @@
 import { Tokenizer } from '../../tokens/tokenizer.ts';
 import { getTokenizerBasedOnModel, LangModelNames } from '../../info.ts';
-import { LangTokensFlow, LanguageModel, calcLangPrice, processSSEResponse } from '../lang.ts';
+import { LangResult, LanguageModel, calcLangPrice } from '../lang.ts';
 import { httpRequest as fetch } from '../../httpRequest.ts';
 import { processResponseStream } from '../../processResponseStream.ts';
 
@@ -43,7 +43,7 @@ export class OpenAILang implements LanguageModel {
   }
 
   async ask(prompt: string, onStream?): Promise<string> {
-    const tokens: LangTokensFlow = {
+    const result: LangResult = {
       answer: "",
       totalTokens: 0,
       promptTokens: this._tokenizer.encode(this._config.systemPrompt).length + this._tokenizer.encode(prompt).length,
@@ -56,8 +56,8 @@ export class OpenAILang implements LanguageModel {
 
     const onData = (data) => {
       if (data.finished) {
-        tokens.finished = true;
-        onStream?.(tokens);
+        result.finished = true;
+        onStream?.(result);
         return;
       }
 
@@ -66,12 +66,12 @@ export class OpenAILang implements LanguageModel {
           ? data.choices[0].delta.content
           : "";
 
-        tokens.answer += deltaContent;
-        tokens.totalTokens = tokensInSystemPrompt + tokensInPrompt + this._tokenizer.encode(tokens.answer).length;
+        result.answer += deltaContent;
+        result.totalTokens = tokensInSystemPrompt + tokensInPrompt + this._tokenizer.encode(result.answer).length;
         // We do it from the config because users may want to set their own price calculation function.
-        tokens.totalPrice = this._config.calcPrice(tokensInSystemPrompt + tokensInPrompt, this._tokenizer.encode(tokens.answer).length);
+        result.totalPrice = this._config.calcPrice(tokensInSystemPrompt + tokensInPrompt, this._tokenizer.encode(result.answer).length);
 
-        onStream?.(tokens);
+        onStream?.(result);
       }
     }
 
@@ -106,7 +106,7 @@ export class OpenAILang implements LanguageModel {
   
     //await processSSEResponse(response, onData);
 
-    return tokens.answer;
+    return result.answer;
   }
 
   async vectorize(text: string): Promise<number[]> {

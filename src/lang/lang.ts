@@ -15,7 +15,7 @@ export interface LanguageModel {
   _defaultCalcPrice(inTokens: number, outTokens: number): string;
 }
 
-export type LangTokensFlow = {
+export type LangResult = {
   answer: string;
   totalTokens: number;
   promptTokens: number;
