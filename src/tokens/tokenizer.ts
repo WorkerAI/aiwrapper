@@ -1,4 +1,4 @@
-import { encodeMap, decodeMap } from './encoding_cl100k_base.js';
+import { encodeMap, decodeMap } from './encoding-cl100k_base.js';
 
 export function encode(text: string): number[] {
   let encodedTokens = [];

@@ -1,6 +1,6 @@
 import * as info from "../info.ts";
-import { StructuredPrompt } from "./structuredPrompt.ts";
-import { OpenAILang, OpenAILangOptions } from "./openai/openAILang.ts";
+import { StructuredPrompt } from "./structured-prompt.ts";
+import { OpenAILang, OpenAILangOptions } from "./openai/openai-lang.ts";
 
 export abstract class Lang {
   static openai(options: OpenAILangOptions): OpenAILang {
@@ -32,11 +32,11 @@ export abstract class Lang {
 export interface LanguageModel {
   readonly name: string;
   ask(prompt: string, onResult: (result: LangResult) => void): Promise<string>;
-  askForObject(
+  askForJSON(
     structuredPrompt: StructuredPrompt,
     content: { [key: string]: string },
     onResult?: (result: LangResult) => void,
-  ): Promise<object>;
+  ): Promise<unknown>;
   defaultCalcCost(inTokens: number, outTokens: number): string;
 }
 
@@ -44,7 +44,7 @@ export type LangResult = {
   answer: string;
   totalTokens: number;
   promptTokens: number;
-  totalPrice: string;
+  totalCost: string;
   finished: boolean;
   // readonly abort: () => void;
   // durationMs: number;

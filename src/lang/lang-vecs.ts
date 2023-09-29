@@ -1,4 +1,4 @@
-import { OpenAILangOptions, OpenAILangVecs } from "./openai/openAILangVecs.ts";
+import { OpenAILangOptions, OpenAILangVecs } from "./openai/openai-lang-vecs.ts";
 
 export class LangVecs {
   static openai(options: OpenAILangOptions): OpenAILangVecs {
@@ -15,5 +15,5 @@ export interface LangVecsModel {
 export type LangVecsResult = {
   vector: number[];
   promptTokens: number;
-  totalPrice: string;
+  totalCost: string;
 }

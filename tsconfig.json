@@ -5,7 +5,6 @@
     "outDir": "js_build",
     "rootDir": "temp_node_source",
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
     "declaration": true,

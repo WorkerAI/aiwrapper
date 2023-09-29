@@ -6,9 +6,9 @@
 
 // **NOTE**: we import with ".js" because this will work with compiled JS files, not
 // the current source ".ts" files.
-import { setHttpRequestImpl } from "./httpRequest.js";
-import { setProcessResponseStreamImpl } from "./processResponseStream.js";
-import processLinesFromStream from "./lang/processLinesFromStream.js";
+import { setHttpRequestImpl } from "./http-request.js";
+import { setProcessResponseStreamImpl } from "./process-response-stream.js";
+import processLinesFromStream from "./lang/process-lines-from-stream.js";
 
 let nodeFetch;
 const isInNodeServer = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
@@ -57,5 +57,5 @@ if (isInNodeServer) {
     await dataPromise;
   });
 }
-s
+
 export * from "./lang/index.js";

@@ -1,10 +1,11 @@
 import type { Tokenizer } from "../../tokens/tokenizer.ts";
 import { getTokenizerBasedOnModel, LangModelNames } from "../../info.ts";
 import { LangResult, LanguageModel } from "../lang.ts";
-import { httpRequest as fetch } from "../../httpRequest.ts";
-import { processResponseStream } from "../../processResponseStream.ts";
+import { httpRequest as fetch } from "../../http-request.ts";
+import { processResponseStream } from "../../process-response-stream.ts";
 import { Lang } from "../index.ts";
-import { StructuredPrompt } from "../structuredPrompt.ts";
+import { StructuredPrompt } from "../structured-prompt.ts";
+import extractJSON from "../json/extract-json.ts";
 
 export type OpenAILangOptions = {
   apiKey: string;
@@ -49,7 +50,7 @@ export class OpenAILang implements LanguageModel {
       totalTokens: 0,
       promptTokens: this._tokenizer.encode(this._config.systemPrompt).length +
         this._tokenizer.encode(prompt).length,
-      totalPrice: "0",
+      totalCost: "0",
       finished: false,
     };
 
@@ -73,7 +74,7 @@ export class OpenAILang implements LanguageModel {
         result.totalTokens = tokensInSystemPrompt + tokensInPrompt +
           this._tokenizer.encode(result.answer).length;
         // We do it from the config because users may want to set their own price calculation function.
-        result.totalPrice = this._config.calcCost(
+        result.totalCost = this._config.calcCost(
           tokensInSystemPrompt + tokensInPrompt,
           this._tokenizer.encode(result.answer).length,
         );
@@ -114,17 +115,36 @@ export class OpenAILang implements LanguageModel {
     return result.answer;
   }
 
-  // async askForObject(typedPrompt: TypedPrompt, onResult: (result: LangResult) => void): Promise<object> { }
-
-  async askForObject(
+  async askForJSON(
     structuredPrompt: StructuredPrompt,
     content: { [key: string]: string },
     onResult?: (result: LangResult) => void,
-  ): Promise<object> {
-    const answer = await this.ask(structuredPrompt.getTextPrompt(content), onResult);
+  ): Promise<unknown> {
+    let out = null;
+    let trialsLeft = 3;
+    const trials = trialsLeft;
 
-    // @TODO: try to parse and if fails - use JSONic
-    return JSON.parse(answer);
+    while (trialsLeft > 0) {
+      trialsLeft--;
+
+      const answer = await this.ask(
+        structuredPrompt.getTextPrompt(content),
+        onResult,
+      );
+      
+      out = extractJSON(answer);
+
+      // @TODO: validate it against the schema
+
+      if (out !== null) {
+        break;
+      }
+      else if (out === null && trialsLeft <= 0) {
+        throw new Error(`Failed to parse JSON after ${trials} trials`);
+      }
+    }
+
+    return out;
   }
 
   defaultCalcCost = (inTokens: number, outTokens: number): string => {

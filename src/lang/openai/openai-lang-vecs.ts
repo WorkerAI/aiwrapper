@@ -1,4 +1,4 @@
-import { LangVecsModel, LangVecsResult } from "../langVecs.ts";
+import { LangVecsModel, LangVecsResult } from "../lang-vecs.ts";
 import { Tokenizer } from "../../tokens/tokenizer.ts";
 import { getTokenizerBasedOnModel } from "../../info.ts";
 import { Lang } from "../lang.ts";
@@ -50,7 +50,7 @@ export class OpenAILangVecs implements LangVecsModel {
     onResult?.({ 
       vector: vecs,
       promptTokens: this._tokenizer.encode(text).length,
-      totalPrice: this._config.calcCost(this._tokenizer.encode(text).length),
+      totalCost: this._config.calcCost(this._tokenizer.encode(text).length),
     });
 
     return vecs;
