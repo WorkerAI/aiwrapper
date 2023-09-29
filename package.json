@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "AIWrapper",
+  "name": "aiwrapper",
   "description": "A Universal AI Wrapper for JavaScript & TypeScript",
   "version": "0.0.2",
   "author": "Dmitry Kury (https://dkury.com)",
