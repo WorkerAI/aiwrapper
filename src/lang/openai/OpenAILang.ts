@@ -39,7 +39,11 @@ export class OpenAILang implements LanguageModel {
     };
   }
 
+  // async askForObject(typedPrompt: TypedPrompt, onResult: (result: LangResult) => void): Promise<object> { }
+
   async askForObject(typeSample: object, prompt: string): Promise<object> {
+    const sampleKeys = Object.keys(typeSample);
+
     throw new Error("Method not implemented.");
   }
 

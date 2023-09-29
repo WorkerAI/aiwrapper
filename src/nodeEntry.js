@@ -4,9 +4,8 @@
  * The compiled JS build goes to /js_build.
  */
 
-// **NOTE**: we import with ".js" at the end because this will work with
-// compiled JS files.
-import { Lang, LangVecs } from "./lang/index.js";
+// **NOTE**: we import with ".js" because this will work with compiled JS files, not
+// the current source ".ts" files.
 import { setHttpRequestImpl } from "./httpRequest.js";
 import { setProcessResponseStreamImpl } from "./processResponseStream.js";
 import processLinesFromStream from "./lang/processLinesFromStream.js";
@@ -60,4 +59,4 @@ if (isInNodeServer) {
 }
 
 
-export { Lang, LangVecs };
+export * from from "./lang/index.js";

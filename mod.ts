@@ -1,10 +1,9 @@
 /**
  * Deno module entry point.
  * No need to build, Deno uses /src folder directly.
- * Node's entry is in /js_build/nodeEntry.js and uses a pre-built version of the package.
+ * Node's entry is in {@link /js_build/nodeEntry.js} and uses a pre-built version of the npm package.
  */
 
-import { Lang, LangVecs } from "./src/lang/index.ts";
 import { setHttpRequestImpl } from "./src/httpRequest.ts";
 
 // Here we use Browser's Fetch API for http requests
@@ -12,4 +11,4 @@ setHttpRequestImpl((url: string | URL | Request, options: object): Promise<Respo
   return fetch(url, options);
 });
 
-export { Lang, LangVecs };
+export * from "./src/lang/index.ts";
