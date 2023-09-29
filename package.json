@@ -1,15 +1,15 @@
 {
   "type": "module",
-  "name": "aiwrapper",
-  "description": "A simple wrapper for OpenAI API",
-  "version": "0.0.1",
+  "name": "AIWrapper",
+  "description": "A Universal AI Wrapper for JavaScript & TypeScript",
+  "version": "0.0.2",
   "author": "Dmitry Kury (https://dkury.com)",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/WorkerAI/aiwrapper.git"
   },
-  "homepage": "https://github.com/WorkerAI/aiwrapper",
+  "homepage": "https://aiwrapper.com",
   "keywords": [
     "AI",
     "AI Wrappers",
@@ -22,7 +22,7 @@
     "js_build/",
     "LICENSE"
   ],
-  "main": "./js_build/nodeEntry.js",
+  "main": "./js_build/node-entry.js",
   "allowJs": true,
   "scripts": {
     "prebuild": "node ./node_builder/prebuild.js",
