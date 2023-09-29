@@ -1,16 +1,17 @@
-import type { Tokenizer } from '../../tokens/tokenizer.ts';
-import { getTokenizerBasedOnModel, LangModelNames } from '../../info.ts';
-import { LangResult, LanguageModel } from '../lang.ts';
-import { httpRequest as fetch } from '../../httpRequest.ts';
-import { processResponseStream } from '../../processResponseStream.ts';
-import { Lang } from '../index.ts';
+import type { Tokenizer } from "../../tokens/tokenizer.ts";
+import { getTokenizerBasedOnModel, LangModelNames } from "../../info.ts";
+import { LangResult, LanguageModel } from "../lang.ts";
+import { httpRequest as fetch } from "../../httpRequest.ts";
+import { processResponseStream } from "../../processResponseStream.ts";
+import { Lang } from "../index.ts";
+import { StructuredPrompt } from "../structuredPrompt.ts";
 
 export type OpenAILangOptions = {
   apiKey: string;
   model?: LangModelNames;
   systemPrompt?: string;
   customCalcCost?: (inTokens: number, outTokens: number) => string;
-}
+};
 
 export type OpenAILangConfig = {
   apiKey: string;
@@ -35,28 +36,25 @@ export class OpenAILang implements LanguageModel {
       apiKey: options.apiKey,
       name: options.model || "gpt-4",
       systemPrompt: options.systemPrompt || `You are a helpful assistant.`,
-      calcCost: options.customCalcCost || this._defaultCalcCost,
+      calcCost: options.customCalcCost || this.defaultCalcCost,
     };
   }
 
-  // async askForObject(typedPrompt: TypedPrompt, onResult: (result: LangResult) => void): Promise<object> { }
-
-  async askForObject(typeSample: object, prompt: string): Promise<object> {
-    const sampleKeys = Object.keys(typeSample);
-
-    throw new Error("Method not implemented.");
-  }
-
-  async ask(prompt: string, onResult: (result: LangResult) => void): Promise<string> {
+  async ask(
+    prompt: string,
+    onResult?: (result: LangResult) => void,
+  ): Promise<string> {
     const result: LangResult = {
       answer: "",
       totalTokens: 0,
-      promptTokens: this._tokenizer.encode(this._config.systemPrompt).length + this._tokenizer.encode(prompt).length,
+      promptTokens: this._tokenizer.encode(this._config.systemPrompt).length +
+        this._tokenizer.encode(prompt).length,
       totalPrice: "0",
       finished: false,
     };
 
-    const tokensInSystemPrompt = this._tokenizer.encode(this._config.systemPrompt).length;
+    const tokensInSystemPrompt =
+      this._tokenizer.encode(this._config.systemPrompt).length;
     const tokensInPrompt = this._tokenizer.encode(prompt).length;
 
     const onData = (data) => {
@@ -72,13 +70,17 @@ export class OpenAILang implements LanguageModel {
           : "";
 
         result.answer += deltaContent;
-        result.totalTokens = tokensInSystemPrompt + tokensInPrompt + this._tokenizer.encode(result.answer).length;
+        result.totalTokens = tokensInSystemPrompt + tokensInPrompt +
+          this._tokenizer.encode(result.answer).length;
         // We do it from the config because users may want to set their own price calculation function.
-        result.totalPrice = this._config.calcCost(tokensInSystemPrompt + tokensInPrompt, this._tokenizer.encode(result.answer).length);
+        result.totalPrice = this._config.calcCost(
+          tokensInSystemPrompt + tokensInPrompt,
+          this._tokenizer.encode(result.answer).length,
+        );
 
         onResult?.(result);
       }
-    }
+    };
 
     // @TODO: add re-tries with exponential backoff
 
@@ -112,7 +114,20 @@ export class OpenAILang implements LanguageModel {
     return result.answer;
   }
 
-  _defaultCalcCost = (inTokens: number, outTokens: number): string => {
-    return Lang.calcLangCost(this.name, inTokens, outTokens);
+  // async askForObject(typedPrompt: TypedPrompt, onResult: (result: LangResult) => void): Promise<object> { }
+
+  async askForObject(
+    structuredPrompt: StructuredPrompt,
+    content: { [key: string]: string },
+    onResult?: (result: LangResult) => void,
+  ): Promise<object> {
+    const answer = await this.ask(structuredPrompt.getTextPrompt(content), onResult);
+
+    // @TODO: try to parse and if fails - use JSONic
+    return JSON.parse(answer);
   }
+
+  defaultCalcCost = (inTokens: number, outTokens: number): string => {
+    return Lang.calcLangCost(this.name, inTokens, outTokens);
+  };
 }

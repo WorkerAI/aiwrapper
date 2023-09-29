@@ -9,7 +9,7 @@ export class LangVecs {
 export interface LangVecsModel {
   readonly name: string;
   ask(prompt: string, onResult: (result: LangVecsResult) => void): Promise<number[]>;
-  _defaultCalcCost(inTokens: number): string;
+  defaultCalcCost(inTokens: number): string;
 }
 
 export type LangVecsResult = {

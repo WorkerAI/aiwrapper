@@ -23,7 +23,7 @@ export class OpenAILangVecs implements LangVecsModel {
     this._config = {
       apiKey: options.apiKey,
       model: "text-embedding-ada-002",
-      calcCost: options.customCalcCost || this._defaultCalcCost,
+      calcCost: options.customCalcCost || this.defaultCalcCost,
     };
     this.name = this._config.model;
 
@@ -56,7 +56,7 @@ export class OpenAILangVecs implements LangVecsModel {
     return vecs;
   }
 
-  _defaultCalcCost = (inTokens: number): string => {
+  defaultCalcCost = (inTokens: number): string => {
     return Lang.calcLangCost(this.name, inTokens, 0);
   }
 }

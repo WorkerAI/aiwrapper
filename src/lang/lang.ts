@@ -1,4 +1,5 @@
 import * as info from "../info.ts";
+import { StructuredPrompt } from "./structuredPrompt.ts";
 import { OpenAILang, OpenAILangOptions } from "./openai/openAILang.ts";
 
 export abstract class Lang {
@@ -15,7 +16,9 @@ export abstract class Lang {
     let outPricePerToken = 0;
 
     if (info.langPricePerToken.has(modelName)) {
-      [inPricePerToken, outPricePerToken] = info.langPricePerToken.get(modelName) as [number, number];
+      [inPricePerToken, outPricePerToken] = info.langPricePerToken.get(
+        modelName,
+      ) as [number, number];
     } else {
       throw new Error(`Unknown model: ${modelName}`);
     }
@@ -29,8 +32,12 @@ export abstract class Lang {
 export interface LanguageModel {
   readonly name: string;
   ask(prompt: string, onResult: (result: LangResult) => void): Promise<string>;
-  askForObject(typeSample: object, prompt: string): Promise<object>;
-  _defaultCalcCost(inTokens: number, outTokens: number): string;
+  askForObject(
+    structuredPrompt: StructuredPrompt,
+    content: { [key: string]: string },
+    onResult?: (result: LangResult) => void,
+  ): Promise<object>;
+  defaultCalcCost(inTokens: number, outTokens: number): string;
 }
 
 export type LangResult = {

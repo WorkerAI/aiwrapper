@@ -57,6 +57,5 @@ if (isInNodeServer) {
     await dataPromise;
   });
 }
-
-
-export * from from "./lang/index.js";
+s
+export * from "./lang/index.js";
