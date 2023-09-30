@@ -1,11 +1,7 @@
-import type { Tokenizer } from "../../tokens/tokenizer.ts";
-import { getTokenizerBasedOnModel, LangModelNames } from "../../info.ts";
-import { LangResult, LanguageModel } from "../lang.ts";
+import { LangModelNames } from "../../info.ts";
+import { LangResult, LanguageModel } from "../language-model.ts";
 import { httpRequest as fetch } from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
-import { Lang } from "../index.ts";
-import { StructuredPrompt } from "../structured-prompt.ts";
-import extractJSON from "../json/extract-json.ts";
 
 export type OpenAILangOptions = {
   apiKey: string;
@@ -21,21 +17,15 @@ export type OpenAILangConfig = {
   calcCost: (inTokens: number, outTokens: number) => string;
 };
 
-export class OpenAILang implements LanguageModel {
-  readonly name: string;
+export class OpenAILang extends LanguageModel {
   _config: OpenAILangConfig;
-  _tokenizer: Tokenizer;
 
   constructor(options: OpenAILangOptions) {
-    this._config = this._getConfig(options);
-    this.name = this._config.name;
-    this._tokenizer = getTokenizerBasedOnModel(this._config.name);
-  }
-
-  _getConfig(options: OpenAILangOptions): OpenAILangConfig {
-    return {
+    const modelName = options.model || "gpt-4";
+    super(modelName);
+    this._config = {
       apiKey: options.apiKey,
-      name: options.model || "gpt-4",
+      name: modelName,
       systemPrompt: options.systemPrompt || `You are a helpful assistant.`,
       calcCost: options.customCalcCost || this.defaultCalcCost,
     };
@@ -48,17 +38,17 @@ export class OpenAILang implements LanguageModel {
     const result: LangResult = {
       answer: "",
       totalTokens: 0,
-      promptTokens: this._tokenizer.encode(this._config.systemPrompt).length +
-        this._tokenizer.encode(prompt).length,
+      promptTokens: this.tokenizer.encode(this._config.systemPrompt).length +
+        this.tokenizer.encode(prompt).length,
       totalCost: "0",
       finished: false,
     };
 
     const tokensInSystemPrompt =
-      this._tokenizer.encode(this._config.systemPrompt).length;
-    const tokensInPrompt = this._tokenizer.encode(prompt).length;
+      this.tokenizer.encode(this._config.systemPrompt).length;
+    const tokensInPrompt = this.tokenizer.encode(prompt).length;
 
-    const onData = (data) => {
+    const onData = (data: any) => {
       if (data.finished) {
         result.finished = true;
         onResult?.(result);
@@ -72,11 +62,11 @@ export class OpenAILang implements LanguageModel {
 
         result.answer += deltaContent;
         result.totalTokens = tokensInSystemPrompt + tokensInPrompt +
-          this._tokenizer.encode(result.answer).length;
+          this.tokenizer.encode(result.answer).length;
         // We do it from the config because users may want to set their own price calculation function.
         result.totalCost = this._config.calcCost(
           tokensInSystemPrompt + tokensInPrompt,
-          this._tokenizer.encode(result.answer).length,
+          this.tokenizer.encode(result.answer).length,
         );
 
         onResult?.(result);
@@ -114,54 +104,4 @@ export class OpenAILang implements LanguageModel {
 
     return result.answer;
   }
-
-  async askForJSON(
-    structuredPrompt: StructuredPrompt,
-    content: { [key: string]: string },
-    onResult?: (result: LangResult) => void,
-  ): Promise<unknown> {
-    let out = null;
-    let trialsLeft = 3;
-    const trials = trialsLeft;
-    let result: LangResult = {
-      answer: "",
-      totalTokens: 0,
-      promptTokens: 0,
-      totalCost: "0",
-      finished: false,
-    };
-
-    while (trialsLeft > 0) {
-      trialsLeft--;
-
-      const answer = await this.ask(
-        structuredPrompt.getTextPrompt(content),
-        (r) => {
-          onResult?.(r);
-          result = r;
-        },
-      );
-      out = extractJSON(answer);
-
-      // Give it the correct JSON string. Before JSON extraction - the results may have been invalid JSON strings
-      result.answer = JSON.stringify(out);
-
-      // @TODO: validate it against the schema
-
-      if (out !== null) {
-        break;
-      } else if (out === null && trialsLeft <= 0) {
-        throw new Error(`Failed to parse JSON after ${trials} trials`);
-      }
-    }
-
-    // Calling it one more time after parsing JSON to return a valid JSON string
-    onResult?.(result);
-
-    return out;
-  }
-
-  defaultCalcCost = (inTokens: number, outTokens: number): string => {
-    return Lang.calcLangCost(this.name, inTokens, outTokens);
-  };
 }

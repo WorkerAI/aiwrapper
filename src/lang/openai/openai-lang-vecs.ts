@@ -57,6 +57,6 @@ export class OpenAILangVecs implements LangVecsModel {
   }
 
   defaultCalcCost = (inTokens: number): string => {
-    return Lang.calcLangCost(this.name, inTokens, 0);
+    return Lang.defaultCalcCost(this.name, inTokens, 0);
   }
 }
