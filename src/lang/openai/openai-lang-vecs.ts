@@ -2,6 +2,7 @@ import { LangVecsModel, LangVecsResult } from "../lang-vecs.ts";
 import { Tokenizer } from "../../tokens/tokenizer.ts";
 import { getTokenizerBasedOnModel } from "../../info.ts";
 import { Lang } from "../lang.ts";
+import langConstCalc from "../langCostCalc.ts";
 
 export type OpenAILangOptions = {
   apiKey: string;
@@ -57,6 +58,6 @@ export class OpenAILangVecs implements LangVecsModel {
   }
 
   defaultCalcCost = (inTokens: number): string => {
-    return Lang.defaultCalcCost(this.name, inTokens, 0);
+    return langConstCalc(this.name, inTokens, 0)
   }
 }

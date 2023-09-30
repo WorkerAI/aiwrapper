@@ -51,7 +51,7 @@ const prebuild = async () => {
   console.log("1. Removing files from ", outDir);
   await cleanOutDir();
   console.log("2. Copying files from ", srcDir, " to ", outDir, " and removing .ts extensions.")
-  copyFilesFromDir(`${srcDir}/**/*.{js,ts}`);
+  copyFilesFromDir(`${srcDir}/**/*.{js,ts,json,md}`);
   console.log("3. Removing .ts extensions from files in ", outDir);
   removeTsExtensions(`${outDir}/**/*.{js,ts}`);
   console.log("✅ PRE-BUILD");

@@ -2,6 +2,7 @@ import * as info from "../info.ts";
 import { StructuredPrompt } from "./structured-prompt.ts";
 import { Tokenizer } from "../tokens/tokenizer.ts";
 import extractJSON from "./json/extract-json.ts";
+import langConstCalc from "./langCostCalc.ts";
 
 /**
  * LanguageModel is an abstract class that represents a language model and
@@ -71,20 +72,7 @@ export abstract class LanguageModel {
     inTokens: number,
     outTokens: number,
   ): string => {
-    let inPricePerToken = 0;
-    let outPricePerToken = 0;
-
-    if (info.langPricePerToken.has(this.name)) {
-      [inPricePerToken, outPricePerToken] = info.langPricePerToken.get(
-        this.name,
-      ) as [number, number];
-    } else {
-      throw new Error(`Unknown model: ${this.name}`);
-    }
-
-    return (inTokens * inPricePerToken + outTokens * outPricePerToken).toFixed(
-      10,
-    );
+    return langConstCalc(this.name, inTokens, outTokens);
   };
 }
 
