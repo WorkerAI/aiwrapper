@@ -7,35 +7,35 @@ import { Lang } from "../index.ts";
 import { StructuredPrompt } from "../structured-prompt.ts";
 import extractJSON from "../json/extract-json.ts";
 
-export type OpenAILangOptions = {
+export type AnthropicLangOptions = {
   apiKey: string;
   model?: LangModelNames;
   systemPrompt?: string;
   customCalcCost?: (inTokens: number, outTokens: number) => string;
 };
 
-export type OpenAILangConfig = {
+export type AnthropicLangConfig = {
   apiKey: string;
   name: LangModelNames;
   systemPrompt: string;
   calcCost: (inTokens: number, outTokens: number) => string;
 };
 
-export class OpenAILang implements LanguageModel {
+export class AnthropicLang implements LanguageModel {
   readonly name: string;
-  _config: OpenAILangConfig;
+  _config: AnthropicLangConfig;
   _tokenizer: Tokenizer;
 
-  constructor(options: OpenAILangOptions) {
+  constructor(options: AnthropicLangOptions) {
     this._config = this._getConfig(options);
     this.name = this._config.name;
     this._tokenizer = getTokenizerBasedOnModel(this._config.name);
   }
 
-  _getConfig(options: OpenAILangOptions): OpenAILangConfig {
+  _getConfig(options: AnthropicLangOptions): AnthropicLangConfig {
     return {
       apiKey: options.apiKey,
-      name: options.model || "gpt-4",
+      name: options.model || "claude-2",
       systemPrompt: options.systemPrompt || `You are a helpful assistant.`,
       calcCost: options.customCalcCost || this.defaultCalcCost,
     };
@@ -65,12 +65,9 @@ export class OpenAILang implements LanguageModel {
         return;
       }
 
-      if (data.choices !== undefined) {
-        const deltaContent = data.choices[0].delta.content
-          ? data.choices[0].delta.content
-          : "";
-
-        result.answer += deltaContent;
+      if (data.completion !== undefined) {
+        const content = data.completion;
+        result.answer += content;
         result.totalTokens = tokensInSystemPrompt + tokensInPrompt +
           this._tokenizer.encode(result.answer).length;
         // We do it from the config because users may want to set their own price calculation function.
@@ -85,24 +82,18 @@ export class OpenAILang implements LanguageModel {
 
     // @TODO: add re-tries with exponential backoff
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/complete", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${this._config.apiKey}`,
+        "anthropic-version": "2023-06-01",
+        "x-api-key": this._config.apiKey,
       },
       body: JSON.stringify({
         model: this._config.name,
-        messages: [
-          {
-            role: "system",
-            content: this._config.systemPrompt,
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
+        prompt:
+          `\n\nHuman: ${this._config.systemPrompt}\n${prompt}\n\nAssistant:`,
+        max_tokens_to_sample: 1000000,
         stream: true,
       }),
     })

@@ -1,10 +1,16 @@
 import * as info from "../info.ts";
 import { StructuredPrompt } from "./structured-prompt.ts";
 import { OpenAILang, OpenAILangOptions } from "./openai/openai-lang.ts";
+import { AnthropicLangOptions } from "./anthropic/anthropic-lang.ts";
+import { AnthropicLang } from "./anthropic/anthropic-lang.ts";
 
 export abstract class Lang {
   static openai(options: OpenAILangOptions): OpenAILang {
     return new OpenAILang(options);
+  }
+
+  static anthropic(options: AnthropicLangOptions): AnthropicLang {
+    return new AnthropicLang(options);
   }
 
   static calcLangCost(
