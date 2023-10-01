@@ -38,6 +38,7 @@ export class AnthropicLang extends LanguageModel {
     onResult?: (result: LangResult) => void,
   ): Promise<string> {
     const result: LangResult = {
+      prompt,
       answer: "",
       totalTokens: 0,
       promptTokens: this.tokenizer.encode(this._config.systemPrompt).length +

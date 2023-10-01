@@ -1,5 +1,5 @@
 import * as info from "../info.ts";
-import { StructuredPrompt } from "./structured-prompt.ts";
+import { PromptForJSON, buildPromptForGettingJSON } from "./prompt-for-json.ts";
 import { Tokenizer } from "../tokens/tokenizer.ts";
 import extractJSON from "./json/extract-json.ts";
 import langConstCalc from "./langCostCalc.ts";
@@ -23,14 +23,15 @@ export abstract class LanguageModel {
   ): Promise<string>;
 
   async askForJSON(
-    structuredPrompt: StructuredPrompt,
-    content: { [key: string]: string },
+    promptObj: PromptForJSON,
     onResult?: (result: LangResult) => void,
   ): Promise<unknown> {
     let out = null;
     let trialsLeft = 3;
     const trials = trialsLeft;
+    const prompt = buildPromptForGettingJSON(promptObj);
     let result: LangResult = {
+      prompt: "",
       answer: "",
       totalTokens: 0,
       promptTokens: 0,
@@ -40,9 +41,8 @@ export abstract class LanguageModel {
 
     while (trialsLeft > 0) {
       trialsLeft--;
-
       const answer = await this.ask(
-        structuredPrompt.getTextPrompt(content),
+        prompt,
         (r) => {
           onResult?.(r);
           result = r;
@@ -77,6 +77,7 @@ export abstract class LanguageModel {
 }
 
 export type LangResult = {
+  prompt: string;
   answer: string;
   totalTokens: number;
   promptTokens: number;
