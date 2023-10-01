@@ -1,8 +1,7 @@
 import { LangVecsModel, LangVecsResult } from "../lang-vecs.ts";
 import { Tokenizer } from "../../tokens/tokenizer.ts";
 import { getTokenizerBasedOnModel } from "../../info.ts";
-import { Lang } from "../lang.ts";
-import langConstCalc from "../langCostCalc.ts";
+import langConstCalc from "../lang-cost-calc.ts";
 
 export type OpenAILangOptions = {
   apiKey: string;

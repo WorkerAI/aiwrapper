@@ -2,7 +2,7 @@ import * as info from "../info.ts";
 import { PromptForJSON, buildPromptForGettingJSON } from "./prompt-for-json.ts";
 import { Tokenizer } from "../tokens/tokenizer.ts";
 import extractJSON from "./json/extract-json.ts";
-import langConstCalc from "./langCostCalc.ts";
+import langConstCalc from "./lang-cost-calc.ts";
 
 /**
  * LanguageModel is an abstract class that represents a language model and
