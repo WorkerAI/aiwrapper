@@ -20,7 +20,7 @@ npm install aiwrapper
 
 ### Deno
 ```typescript
-import * as aiwrapper from "https://deno.land/x/aiwrapper";
+import * as aiwrapper from "https://deno.land/x/aiwrapper/mod.ts";
 ```
 
 ## Quick Start
@@ -38,7 +38,7 @@ console.log(answer);
 ```javascript
 import { Img } from "aiwrapper";
 
-const img = Img.openai({ apiKey });
+const img = Img.openai({ apiKey: "YOUR KEY" });
 const image = await img.ask('A portrait of a cute cat');
 
 console.log(image);
@@ -48,7 +48,7 @@ console.log(image);
 ```javascript
 import { Voice } from "aiwrapper";
 
-const voice = Voice.openai({ apiKey });
+const voice = Voice.google({ apiKey: "YOUR KEY" });
 const audio = voice.ask('Hello, world!');
 
 console.log(audio.length);
