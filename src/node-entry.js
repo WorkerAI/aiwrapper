@@ -47,7 +47,7 @@ encodeBase64Impl((str) => {
 
   // A regular browser's btoa
   return btoa(str);
-}
+});
 
 if (isInNodeServer) {
   // For processing response streams from Node.
