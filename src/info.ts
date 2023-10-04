@@ -1,4 +1,6 @@
-import { Tokenizer, Tokenizer_cl100k_base } from "./tokens/tokenizer.ts";
+import { Tokenizer_claude } from "./lang/tokens/anthropic/tokenizer-claude.ts";
+import { Tokenizer_cl100k_base } from "./lang/tokens/openai/tokenizer-cl100k_base.ts";
+import { Tokenizer } from "./lang/tokens/tokenizer.ts";
 
 /**
  * Supported Language Models.
@@ -53,8 +55,7 @@ export const getTokenizerBasedOnModel = (model: string): Tokenizer => {
       return new Tokenizer_cl100k_base();
     case "claude-2":
     case "claude-instant-1":
-      // @TODO: Add tokenizer for claude models
-      return new Tokenizer_cl100k_base();
+      return new Tokenizer_claude();
     default:
       throw new Error(`Unknown model: ${model}`);
   }

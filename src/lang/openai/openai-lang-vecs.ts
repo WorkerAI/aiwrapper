@@ -1,5 +1,5 @@
 import { LangVecsModel, LangVecsResult } from "../lang-vecs.ts";
-import { Tokenizer } from "../../tokens/tokenizer.ts";
+import { Tokenizer } from "../tokens/tokenizer.ts";
 import { getTokenizerBasedOnModel } from "../../info.ts";
 import langConstCalc from "../lang-cost-calc.ts";
 
