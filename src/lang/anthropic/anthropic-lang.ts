@@ -1,5 +1,5 @@
 import { LangModelNames } from "../../info.ts";
-import { httpRequest as fetch } from "../../http-request.ts";
+import { httpRequestWithRetry as fetch } from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
 import { LangResult, LanguageModel } from "../language-model.ts";
 

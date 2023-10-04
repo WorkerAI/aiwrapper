@@ -1,6 +1,7 @@
 import { LangVecsModel, LangVecsResult } from "../lang-vecs.ts";
 import { Tokenizer } from "../tokens/tokenizer.ts";
 import { getTokenizerBasedOnModel } from "../../info.ts";
+import { httpRequestWithRetry as fetch } from "../../http-request.ts";
 import langConstCalc from "../lang-cost-calc.ts";
 
 export type OpenAILangOptions = {
