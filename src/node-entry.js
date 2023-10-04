@@ -52,6 +52,18 @@ encodeBase64Impl((str) => {
 if (isInNodeServer) {
   // For processing response streams from Node.
   setProcessResponseStreamImpl(async (response, onData) => {
+    if (response.ok === false) {
+      if (response.status === 401) {
+        throw new Error(
+          "API key is invalid. Please check your API key and try again.",
+        );
+      }
+  
+      throw new Error(
+        `Response from server was not ok. Status code: ${response.status}.`,
+      );
+    }
+
     let rawData = "";
     const decoder = new TextDecoder("utf-8");
     

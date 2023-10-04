@@ -2,6 +2,18 @@ import processLinesFromStream from "./lang/process-lines-from-stream.ts";
 
 // This would work only in Deno and browsers, not in Node.
 let _processResponseStream = (response: Response, onData): Promise<void> => {
+  if (response.ok === false) {
+    if (response.status === 401) {
+      throw new Error(
+        "API key is invalid. Please check your API key and try again.",
+      );
+    }
+
+    throw new Error(
+      `Response from server was not ok. Status code: ${response.status}.`,
+    );
+  }
+
   const reader = response.body!.getReader();
   let decoder = new TextDecoder("utf-8");
   let rawData = "";
