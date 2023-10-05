@@ -1,4 +1,4 @@
-import { Tokenizer, encodeWithBase64Map, decodeFromBase64Arr } from '../tokenizer.ts';
+import { Tokenizer, encodeBpe, decodeBpe } from '../tokenizer.ts';
 import { tokensBase64 } from './encoding-cl100k_base.js';
 
 const decodingBase64Arr = tokensBase64.split(' ');
@@ -11,10 +11,10 @@ export class Tokenizer_cl100k_base implements Tokenizer {
   name = 'cl100k_base';
 
   encode(text: string): number[] {
-    return encodeWithBase64Map(text, encodingBase64Map);
+    return encodeBpe(text, encodingBase64Map);
   }
 
   decode(tokens: number[]): string {
-    return decodeFromBase64Arr(tokens, decodingBase64Arr);
+    return decodeBpe(tokens, decodingBase64Arr);
   }
 }

@@ -1,4 +1,4 @@
-import { Tokenizer, encodeWithBase64Map, decodeFromBase64Arr } from '../tokenizer.ts';
+import { Tokenizer, encodeBpe, decodeBpe } from '../tokenizer.ts';
 import { tokensBase64, tokensOffset, splitRegex } from './encoding-claude.js';
 
 const claudeTokensWithoutOffset = tokensBase64.split(' ');
@@ -12,10 +12,10 @@ export class Tokenizer_claude implements Tokenizer {
   name = 'claude';
 
   encode(text: string): number[] {
-    return encodeWithBase64Map(text, encodingBase64Map, splitRegex);
+    return encodeBpe(text, encodingBase64Map/*, splitRegex*/);
   }
 
   decode(tokens: number[]): string {
-    return decodeFromBase64Arr(tokens, decodingBase64Arr);
+    return decodeBpe(tokens, decodingBase64Arr);
   }
 }

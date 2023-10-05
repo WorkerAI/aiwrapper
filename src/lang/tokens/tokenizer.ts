@@ -1,4 +1,4 @@
-import { encodeBase64, decodeBase64 } from "./base64.ts";
+import { decodeBase64, encodeBytesToBase64 } from "./base64.ts";
 
 export interface Tokenizer {
   readonly name: string;
@@ -6,102 +6,44 @@ export interface Tokenizer {
   decode(tokens: number[]): string;
 }
 
-export function encode(text: string, encodeMap: Map<string, number>): number[] {
-  let encodedTokens = [];
-  let start = 0;
+export function encodeBpe(input: string, mergeableRanks: Map<string, number>): number[] {
+  const encoder = new TextEncoder();
+  const uint8array = encoder.encode(input);
+  
+  let parts: Uint8Array[] = Array.from(uint8array).map(b => new Uint8Array([b]));
 
-  while (start < text.length) {
-    let bestMatch = "";
+  while (true) {
+    let minIdx: number | null = null;
+    let minRank: number | null = null;
 
-    for (let end = start + 1; end <= text.length; end++) {
-      let substr = text.slice(start, end);
+    for (let i = 0; i < parts.length - 1; i++) {
+      const pair = new Uint8Array([...parts[i], ...parts[i + 1]]);
+      const rank = mergeableRanks.get(encodeBytesToBase64(pair));
 
-      if (encodeMap.has(substr) /* && substr.length > bestMatch.length*/) {
-        bestMatch = substr;
+      if (rank !== undefined && (minRank === null || rank < minRank)) {
+        minIdx = i;
+        minRank = rank;
       }
     }
 
-    if (bestMatch) {
-      encodedTokens.push(encodeMap.get(bestMatch));
-      start += bestMatch.length;
-    } else {
-      console.warn(
-        `No match found for substring starting at index ${start}. Skipping one character.`,
-      );
-      start += 1;
+    if (minRank === null) {
+      break;
+    }
+
+    if (minIdx !== null) {
+      const merged = new Uint8Array([...parts[minIdx], ...parts[minIdx + 1]]);
+      parts = [...parts.slice(0, minIdx), merged, ...parts.slice(minIdx + 2)];
     }
   }
 
-  return encodedTokens;
+  const tokens: number[] = parts.map(part => mergeableRanks.get(encodeBytesToBase64(part)) || 0);
+  return tokens;
 }
 
-export function encodeWithBase64Map(
-  fullText: string,
-  encodeMap: Map<string, number>,
-  splitRegex?: RegExp,
-): number[] {
-  let splitText = [fullText];
-
-  if (splitRegex !== undefined) {
-    const splitMatch = fullText.match(splitRegex);
-    if (splitMatch === null) {
-      throw new Error("Regex didn't match.");
-    }
-    splitText = splitMatch.map((token) => token);
-  }
-
-  const encodedTokens = [];
-
-  for (let i = 0; i < splitText.length; i++) {
-    const text = splitText[i];
-    let start = 0;
-
-    while (start < text.length) {
-      let bestMatch = "";
-      let bestMatchBase64 = "";
-
-      for (let end = start + 1; end <= text.length; end++) {
-        const substr = text.slice(start, end);
-        const substrBase64 = encodeBase64(substr);
-
-        if (encodeMap.has(substrBase64)) {
-          bestMatchBase64 = substrBase64;
-          bestMatch = substr;
-        }
-      }
-
-      if (bestMatchBase64) {
-        encodedTokens.push(encodeMap.get(bestMatchBase64));
-        start += bestMatch.length;
-      } else {
-        console.warn(
-          `No match found for substring starting at index ${start}. Skipping one character.`,
-        );
-        start += 1;
-      }
-    }
-  }
-
-  return encodedTokens;
-}
-
-export function decode(encodedTokens: number[], decodeArr: string[]): string {
-  let text = "";
-
-  for (let token of encodedTokens) {
-    try {
-      text += decodeArr[token];
-    } catch (error) {
-      console.error(`Didn't find a match for a token ${token}.`);
-    }
-  }
-
-  return text;
-}
-
-encode
-
-export function decodeFromBase64Arr(encodedTokens: number[], decodeArr: string[]): string {
+export function decodeBpe(
+  encodedTokens: number[],
+  decodeArr: string[],
+): string {
   let text = "";
 
   for (const token of encodedTokens) {

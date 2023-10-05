@@ -9,7 +9,7 @@
 import { setHttpRequestImpl } from "./http-request.js";
 import { setProcessResponseStreamImpl } from "./process-response-stream.js";
 import processLinesFromStream from "./lang/process-lines-from-stream.js";
-import { decodeBase64Impl, encodeBase64Impl } from "./lang/tokens/base64.ts";
+import { decodeBase64Impl, encodeBase64Impl, encodeBytesToBase64Impl } from "./lang/tokens/base64.ts";
 
 let nodeFetch;
 const isInNodeServer = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
@@ -50,15 +50,15 @@ encodeBase64Impl((str) => {
 });
 
 if (isInNodeServer) {
+  encodeBytesToBase64Impl((bytes) => {
+    return Buffer.from(bytes).toString('base64');
+  });
+}
+
+if (isInNodeServer) {
   // For processing response streams from Node.
   setProcessResponseStreamImpl(async (response, onData) => {
     if (response.ok === false) {
-      if (response.status === 401) {
-        throw new Error(
-          "API key is invalid. Please check your API key and try again.",
-        );
-      }
-  
       throw new Error(
         `Response from server was not ok. Status code: ${response.status}.`,
       );
@@ -66,24 +66,24 @@ if (isInNodeServer) {
 
     let rawData = "";
     const decoder = new TextDecoder("utf-8");
-    
+
     const dataPromise = new Promise((resolve, reject) => {
       response.body.on('data', (chunk) => {
-          rawData += decoder.decode(chunk);
-          // Process each complete message (messages are divided by newlines)
-          let lastIndex = rawData.lastIndexOf("\n");
-          if (lastIndex > -1) {
-              processLinesFromStream(rawData.slice(0, lastIndex), onData);
-              rawData = rawData.slice(lastIndex + 1);
-          }
+        rawData += decoder.decode(chunk);
+        // Process each complete message (messages are divided by newlines)
+        let lastIndex = rawData.lastIndexOf("\n");
+        if (lastIndex > -1) {
+          processLinesFromStream(rawData.slice(0, lastIndex), onData);
+          rawData = rawData.slice(lastIndex + 1);
+        }
       });
 
       response.body.on('end', () => {
-          resolve();
+        resolve();
       });
 
       response.body.on('error', (err) => {
-          reject(err);
+        reject(err);
       });
     });
 

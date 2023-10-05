@@ -1,6 +1,6 @@
 import { LangModelNames } from "../../info.ts";
 import { LangResult, LanguageModel } from "../language-model.ts";
-import { httpRequestWithRetry as fetch } from "../../http-request.ts";
+import { DecisionOnNotOkResponse, httpRequestWithRetry as fetch } from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
 
 export type OpenAILangOptions = {
@@ -96,6 +96,21 @@ export class OpenAILang extends LanguageModel {
         ],
         stream: true,
       }),
+      onNotOkResponse: (res, decision): DecisionOnNotOkResponse => {
+        if (res.status === 401) {
+          // We don't retry if the API key is invalid.
+          decision.retry = false;
+          throw new Error("API key is invalid. Please check your API key and try again.");
+        }
+
+        if (res.status === 400) {
+          // We don't retry if the model is invalid.
+          decision.retry = false;
+          throw new Error("Bad Request. Please make sure you send valid data. Could be that the message is too large.");
+        }
+        
+        return decision;
+      },
     })
       .catch((err) => {
         throw new Error(err);
