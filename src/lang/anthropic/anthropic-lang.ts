@@ -36,20 +36,12 @@ export class AnthropicLang extends LanguageModel {
   async ask(
     prompt: string,
     onResult?: (result: LangResult) => void,
-  ): Promise<string> {
-    const result: LangResult = {
-      prompt,
-      answer: "",
-      totalTokens: 0,
-      promptTokens: this.tokenizer.encode(this._config.systemPrompt).length +
-        this.tokenizer.encode(prompt).length,
-      totalCost: "0",
-      finished: false,
-    };
-
+  ): Promise<LangResult> {
     const tokensInSystemPrompt =
       this.tokenizer.encode(this._config.systemPrompt).length;
     const tokensInPrompt = this.tokenizer.encode(prompt).length;
+
+    const result = new LangResult(prompt, tokensInSystemPrompt + tokensInPrompt);
 
     const onData = (data: any) => {
       if (data.finished) {
@@ -62,11 +54,11 @@ export class AnthropicLang extends LanguageModel {
         const content = data.completion;
         result.answer += content;
         result.totalTokens = tokensInSystemPrompt + tokensInPrompt +
-          this.tokenizer.encode(result.answer).length;
+          this.tokenizer.encode(result.answer as string).length;
         // We do it from the config because users may want to set their own price calculation function.
         result.totalCost = this._config.calcCost(
           tokensInSystemPrompt + tokensInPrompt,
-          this.tokenizer.encode(result.answer).length,
+          this.tokenizer.encode(result.answer as string).length,
         );
 
         onResult?.(result);
@@ -96,6 +88,6 @@ export class AnthropicLang extends LanguageModel {
 
     await processResponseStream(response, onData);
 
-    return result.answer;
+    return result;
   }
 }

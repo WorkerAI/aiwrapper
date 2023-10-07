@@ -34,7 +34,8 @@ export class OpenAILang extends LanguageModel {
   async ask(
     prompt: string,
     onResult?: (result: LangResult) => void,
-  ): Promise<string> {
+  ): Promise<LangResult> {
+    /*
     const result: LangResult = {
       prompt,
       answer: "",
@@ -44,10 +45,13 @@ export class OpenAILang extends LanguageModel {
       totalCost: "0",
       finished: false,
     };
+    */
 
     const tokensInSystemPrompt =
-      this.tokenizer.encode(this._config.systemPrompt).length;
+    this.tokenizer.encode(this._config.systemPrompt).length;
     const tokensInPrompt = this.tokenizer.encode(prompt).length;
+
+    const result = new LangResult(prompt, tokensInSystemPrompt + tokensInPrompt);
 
     const onData = (data: any) => {
       if (data.finished) {
@@ -63,11 +67,11 @@ export class OpenAILang extends LanguageModel {
 
         result.answer += deltaContent;
         result.totalTokens = tokensInSystemPrompt + tokensInPrompt +
-          this.tokenizer.encode(result.answer).length;
+          this.tokenizer.encode(result.answer as string).length;
         // We do it from the config because users may want to set their own price calculation function.
         result.totalCost = this._config.calcCost(
           tokensInSystemPrompt + tokensInPrompt,
-          this.tokenizer.encode(result.answer).length,
+          this.tokenizer.encode(result.answer as string).length,
         );
 
         onResult?.(result);
@@ -118,6 +122,6 @@ export class OpenAILang extends LanguageModel {
 
     await processResponseStream(response, onData);
 
-    return result.answer;
+    return result;
   }
 }

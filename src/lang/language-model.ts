@@ -20,7 +20,7 @@ export abstract class LanguageModel {
   abstract ask(
     prompt: string,
     onResult: (result: LangResult) => void,
-  ): Promise<string>;
+  ): Promise<LangResult>;
 
   async askForJSON(
     promptObj: PromptForJSON,
@@ -76,13 +76,36 @@ export abstract class LanguageModel {
   };
 }
 
-export type LangResult = {
+export class LangResult {
   prompt: string;
-  answer: string;
+  answer: string | object;
   totalTokens: number;
   promptTokens: number;
-  totalCost: string;
-  finished: boolean;
-  // readonly abort: () => void;
+  totalCost: string = "0";
+  finished: boolean = false;
   // durationMs: number;
-};
+
+  constructor(
+    prompt: string,
+    promptTokens: number,
+  ) {
+    this.prompt = prompt;
+    this.answer = "";
+    this.totalTokens = 0;
+    this.promptTokens = promptTokens;
+    this.totalCost = totalCost;
+    this.finished;
+  }
+
+  toString(): string {
+    if (typeof this.answer === "string") {
+      return this.answer;
+    }
+
+    return JSON.stringify(this.answer);
+  }
+
+  abort(): void {
+    throw new Error("Not implemented yet");
+  }
+}
