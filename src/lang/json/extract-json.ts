@@ -54,7 +54,7 @@ function tryToGetJSONFromText(str: string): string | null {
 export default function extractJSON(
   str: string,
   verbose = false,
-): unknown | null {
+): object | null {
   const possilbeJsonStr = tryToGetJSONFromText(str);
   if (possilbeJsonStr === null) {
     if (verbose) {

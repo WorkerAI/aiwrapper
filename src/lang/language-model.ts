@@ -19,53 +19,53 @@ export abstract class LanguageModel {
 
   abstract ask(
     prompt: string,
-    onResult: (result: LangResult) => void,
-  ): Promise<LangResult>;
+    onResult: (result: LangResultWithString) => void,
+  ): Promise<LangResultWithString>;
 
   async askForJSON(
     promptObj: PromptForJSON,
-    onResult?: (result: LangResult) => void,
-  ): Promise<unknown> {
-    let out = null;
+    onResult?: (result: LangResultWithObject) => void,
+  ): Promise<LangResultWithObject> {
     let trialsLeft = 3;
     const trials = trialsLeft;
     const prompt = buildPromptForGettingJSON(promptObj);
-    let result: LangResult = {
-      prompt: "",
-      answer: "",
-      totalTokens: 0,
-      promptTokens: 0,
-      totalCost: "0",
-      finished: false,
-    };
+    const result = new LangResultWithObject(prompt, this.tokenizer.encode(prompt).length);
 
     while (trialsLeft > 0) {
       trialsLeft--;
-      const answer = await this.ask(
+      const res = await this.ask(
         prompt,
         (r) => {
-          onResult?.(r);
-          result = r;
+          result.answer = r.answer;
+          result.totalTokens = r.totalTokens;
+          result.totalCost = r.totalCost;
+          result.finished = r.finished;
+        
+          onResult?.(result);
         },
       );
-      out = extractJSON(answer);
 
-      // Give it the correct JSON string. Before JSON extraction - the results may have been invalid JSON strings
-      result.answer = JSON.stringify(out);
+      const jsonObj = extractJSON(res.answer);
 
-      // @TODO: validate it against the schema
+      if (jsonObj !== null) {
+        result.answerObj = jsonObj;
+      }
 
-      if (out !== null) {
+      // @TODO: validate the object against the schema from exampleOutputs
+
+      if (result.answerObj !== null) {
         break;
-      } else if (out === null && trialsLeft <= 0) {
+      } else if (result.answerObj === null && trialsLeft <= 0) {
         throw new Error(`Failed to parse JSON after ${trials} trials`);
       }
     }
 
+    result.finished = true;
+
     // Calling it one more time after parsing JSON to return a valid JSON string
     onResult?.(result);
 
-    return out;
+    return result;
   }
 
   defaultCalcCost = (
@@ -76,9 +76,17 @@ export abstract class LanguageModel {
   };
 }
 
-export class LangResult {
+interface LangProcessingResult {
   prompt: string;
-  answer: string | object;
+  totalTokens: number;
+  promptTokens: number;
+  totalCost: string;
+  finished: boolean;
+}
+
+export class LangResultWithString implements LangProcessingResult {
+  prompt: string;
+  answer: string;
   totalTokens: number;
   promptTokens: number;
   totalCost: string = "0";
@@ -93,19 +101,43 @@ export class LangResult {
     this.answer = "";
     this.totalTokens = 0;
     this.promptTokens = promptTokens;
-    this.totalCost = totalCost;
     this.finished;
   }
 
   toString(): string {
-    if (typeof this.answer === "string") {
-      return this.answer;
-    }
-
-    return JSON.stringify(this.answer);
+    return this.answer;  
   }
 
   abort(): void {
     throw new Error("Not implemented yet");
+  }
+}
+
+export class LangResultWithObject implements LangProcessingResult {
+  answerObj: object = {};
+  answer: string = "";
+  prompt: string;
+  totalTokens: number;
+  promptTokens: number;
+  totalCost: string = "0";
+  finished: boolean = false;
+
+  constructor(
+    prompt: string,
+    promptTokens: number,
+  ) {
+    this.prompt = prompt;
+    this.totalTokens = 0;
+    this.promptTokens = promptTokens;
+    this.finished;
+  }
+
+  toString(): string {
+
+    if (Object.keys(this.answerObj).length === 0) {
+      return this.answer;
+    }
+
+    return JSON.stringify(this.answerObj);
   }
 }

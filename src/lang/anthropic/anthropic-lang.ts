@@ -1,7 +1,7 @@
 import { LangModelNames } from "../../info.ts";
 import { httpRequestWithRetry as fetch } from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
-import { LangResult, LanguageModel } from "../language-model.ts";
+import { LangResultWithString, LanguageModel } from "../language-model.ts";
 
 export type AnthropicLangOptions = {
   apiKey: string;
@@ -35,13 +35,13 @@ export class AnthropicLang extends LanguageModel {
 
   async ask(
     prompt: string,
-    onResult?: (result: LangResult) => void,
-  ): Promise<LangResult> {
+    onResult?: (result: LangResultWithString) => void,
+  ): Promise<LangResultWithString> {
     const tokensInSystemPrompt =
       this.tokenizer.encode(this._config.systemPrompt).length;
     const tokensInPrompt = this.tokenizer.encode(prompt).length;
 
-    const result = new LangResult(prompt, tokensInSystemPrompt + tokensInPrompt);
+    const result = new LangResultWithString(prompt, tokensInSystemPrompt + tokensInPrompt);
 
     const onData = (data: any) => {
       if (data.finished) {
@@ -65,7 +65,7 @@ export class AnthropicLang extends LanguageModel {
       }
     };
 
-    // @TODO: add re-tries with exponential backoff
+    // @TODO: add onNotOkResponse handler
 
     const response = await fetch("https://api.anthropic.com/v1/complete", {
       method: "POST",

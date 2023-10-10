@@ -1,5 +1,5 @@
 import { LangModelNames } from "../../info.ts";
-import { LangResult, LanguageModel } from "../language-model.ts";
+import { LangResultWithString, LanguageModel } from "../language-model.ts";
 import { DecisionOnNotOkResponse, httpRequestWithRetry as fetch } from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
 
@@ -33,25 +33,13 @@ export class OpenAILang extends LanguageModel {
 
   async ask(
     prompt: string,
-    onResult?: (result: LangResult) => void,
-  ): Promise<LangResult> {
-    /*
-    const result: LangResult = {
-      prompt,
-      answer: "",
-      totalTokens: 0,
-      promptTokens: this.tokenizer.encode(this._config.systemPrompt).length +
-        this.tokenizer.encode(prompt).length,
-      totalCost: "0",
-      finished: false,
-    };
-    */
-
+    onResult?: (result: LangResultWithString) => void,
+  ): Promise<LangResultWithString> {
     const tokensInSystemPrompt =
     this.tokenizer.encode(this._config.systemPrompt).length;
     const tokensInPrompt = this.tokenizer.encode(prompt).length;
 
-    const result = new LangResult(prompt, tokensInSystemPrompt + tokensInPrompt);
+    const result = new LangResultWithString(prompt, tokensInSystemPrompt + tokensInPrompt);
 
     const onData = (data: any) => {
       if (data.finished) {
@@ -77,8 +65,6 @@ export class OpenAILang extends LanguageModel {
         onResult?.(result);
       }
     };
-
-    // @TODO: add re-tries with exponential backoff
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
