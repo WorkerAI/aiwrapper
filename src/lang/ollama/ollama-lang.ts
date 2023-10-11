@@ -63,13 +63,6 @@ export class OllamaLang extends LanguageModel {
       }
     };
 
-    console.log("Request");
-
-    console.log(JSON.stringify({
-      model: this._config.name,
-      prompt,
-    }));
-
     const response = await fetch("http://localhost:11434/api/generate", {
       method: "POST",
       headers: {

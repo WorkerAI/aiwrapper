@@ -36,6 +36,8 @@ export const langPricePerToken = new Map<string, [number, number]>([
   /* Anthropic */
   ["claude-2", [0.00001102, 0.00003268]],
   ["claude-instant-1", [0.00000163, 0.00000551]],
+
+  ["mistral", [0, 0]],
 ]);
 
 export const getCostPerToken = (model: string): [number, number] => {
