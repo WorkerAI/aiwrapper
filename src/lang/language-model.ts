@@ -115,12 +115,12 @@ export class LangResultWithString implements LangProcessingResult {
 
 export class LangResultWithObject implements LangProcessingResult {
   answerObj: object = {};
-  answer: string = "";
+  answer = "";
   prompt: string;
   totalTokens: number;
   promptTokens: number;
-  totalCost: string = "0";
-  finished: boolean = false;
+  totalCost = "0";
+  finished = false;
 
   constructor(
     prompt: string,
