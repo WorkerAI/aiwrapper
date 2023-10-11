@@ -1,25 +1,31 @@
 export type PromptForJSON = {
   // @TODO: make title and description optional
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   instructions: string[];
   outputExamples: object[];
-  content: {
+  content?: {
     [key: string]: string;
   };
 };
 
 export function buildPromptForGettingJSON(prompt: PromptForJSON): string {
-  const instructionsCount = prompt.instructions ? prompt.instructions.length : 0;
+  const instructionsCount = prompt.instructions
+    ? prompt.instructions.length
+    : 0;
   const instructions = prompt.instructions
     ? "\n## Instructions\n" + prompt.instructions
       .map((instruction, idx) => `${idx + 1}. ${instruction}`)
       .join("\n")
     : "";
 
-  const contentFields = Object.keys(prompt.content)
-  .map((key) => `## ${key}\n${prompt.content[key]}`)
-  .join("\n\n");
+  let contentFields = prompt.content ? prompt.content : "";
+
+  if (prompt.content) {
+    contentFields = Object.keys(prompt.content)
+      .map((key) => `## ${key}\n${prompt.content ? prompt.content[key] : ""}`)
+      .join("\n\n");
+  }
 
   let exampleOutputs = "";
   if (prompt.outputExamples && prompt.outputExamples.length > 0) {
@@ -30,8 +36,8 @@ export function buildPromptForGettingJSON(prompt: PromptForJSON): string {
     }`;
   }
 
-  return `# ${prompt.title}
-${prompt.description}
+  return `# ${prompt.title ? prompt.title : "Prompt for JSON"}
+${prompt.description ? prompt.description : ""}
 ${instructions}
 ${
     instructionsCount + 1
