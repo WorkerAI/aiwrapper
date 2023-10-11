@@ -4,12 +4,14 @@ import { DecisionOnNotOkResponse, httpRequestWithRetry as fetch } from "../../ht
 import { processResponseStream } from "../../process-response-stream.ts";
 
 export type OllamaLangOptions = {
+  url?: string;
   model?: string;
   systemPrompt?: string;
   customCalcCost?: (inTokens: number, outTokens: number) => string;
 };
 
 export type OllamaLangConfig = {
+  url: string;
   name: string;
   systemPrompt: string;
   calcCost: (inTokens: number, outTokens: number) => string;
@@ -22,6 +24,7 @@ export class OllamaLang extends LanguageModel {
     const modelName = options.model || "mistral";
     super(modelName);
     this._config = {
+      url: options.url || "http://localhost:11434/",
       name: modelName,
       systemPrompt: options.systemPrompt || `You are a helpful assistant.`,
       calcCost: options.customCalcCost || this.defaultCalcCost,
@@ -63,7 +66,7 @@ export class OllamaLang extends LanguageModel {
       }
     };
 
-    const response = await fetch("http://localhost:11434/api/generate", {
+    const response = await fetch(`${this._config.url}api/generate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
