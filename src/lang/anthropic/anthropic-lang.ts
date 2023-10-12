@@ -1,19 +1,22 @@
 import { LangModelNames } from "../../info.ts";
 import { httpRequestWithRetry as fetch } from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
-import { LangChatMessages, LangResultFromChat, LangResultWithString, LanguageModel } from "../language-model.ts";
+import {
+  LangChatMessages,
+  LangResultWithMessages,
+  LangResultWithString,
+  LanguageModel,
+} from "../language-model.ts";
 
 export type AnthropicLangOptions = {
   apiKey: string;
   model?: LangModelNames;
-  systemPrompt?: string;
   customCalcCost?: (inTokens: number, outTokens: number) => string;
 };
 
 export type AnthropicLangConfig = {
   apiKey: string;
   name: LangModelNames;
-  systemPrompt: string;
   calcCost: (inTokens: number, outTokens: number) => string;
 };
 
@@ -27,7 +30,6 @@ export class AnthropicLang extends LanguageModel {
     this._config = {
       apiKey: options.apiKey,
       name: modelName,
-      systemPrompt: options.systemPrompt || `You are a helpful assistant.`,
       calcCost: options.customCalcCost || this.defaultCalcCost,
     };
     this.name = this._config.name;
@@ -37,31 +39,83 @@ export class AnthropicLang extends LanguageModel {
     prompt: string,
     onResult?: (result: LangResultWithString) => void,
   ): Promise<LangResultWithString> {
-    const tokensInSystemPrompt =
-      this.tokenizer.encode(this._config.systemPrompt).length;
     const tokensInPrompt = this.tokenizer.encode(prompt).length;
 
-    const result = new LangResultWithString(prompt, tokensInSystemPrompt + tokensInPrompt);
+    const result = new LangResultWithString(
+      prompt,
+      tokensInPrompt,
+    );
+
+    await this._generate_internal(
+      // Format messages in the way that Anthropic expects chats to be formatted.
+      `\n\nHuman: ${prompt}\n\nAssistant:`,
+      (res, finished) => {
+        result.finished = finished;
+        result.answer = res;
+        result.totalTokens = tokensInPrompt +
+          this.tokenizer.encode(result.answer as string).length;
+        // We do it from the config because users may want to set their own price calculation function.
+        result.totalCost = this._config.calcCost(
+          tokensInPrompt,
+          this.tokenizer.encode(result.answer as string).length,
+        );
+
+        onResult?.(result);
+      },
+    );
+
+    return result;
+  }
+
+  async chat(
+    messages: LangChatMessages,
+    onResult?: (result: LangResultWithMessages) => void,
+  ): Promise<LangResultWithMessages> {
+    // Turn messages into: "\n\nHuman: Hello, Claude\n\nAssistant: Hello, world\n\nHuman: How many toes do dogs have?"
+    const messagesStr = messages.reduce((acc, message) => {
+      return acc +
+        `{systemPromptMsgs}\n\n${
+          getAnhropicRole(message.role)
+        }: ${message.content}`;
+    }, "") + "\n\nAssistant:";
+
+    const prevMessagesTokens = this.tokenizer.encode(messagesStr).length;
+    const result = new LangResultWithMessages(messages, prevMessagesTokens);
+
+    await this._generate_internal(messagesStr, (res, finished) => {
+      result.finished = finished;
+      result.answer = res;
+      result.totalTokens = prevMessagesTokens +
+        this.tokenizer.encode(result.answer as string)
+          .length;
+      // We do it from the config because users may want to set their own price calculation function.
+      result.totalCost = this._config.calcCost(
+        prevMessagesTokens,
+        this.tokenizer.encode(result.answer as string).length,
+      );
+
+      onResult?.(result);
+    });
+
+    return result;
+  }
+
+  private async _generate_internal(
+    prompt: string,
+    onResponse: (res: string, finished: boolean) => void,
+  ): Promise<string> {
+    let fullResponse = "";
 
     const onData = (data: any) => {
       if (data.finished) {
-        result.finished = true;
-        onResult?.(result);
+        onResponse?.(fullResponse, true);
         return;
       }
 
       if (data.completion !== undefined) {
         const content = data.completion;
-        result.answer += content;
-        result.totalTokens = tokensInSystemPrompt + tokensInPrompt +
-          this.tokenizer.encode(result.answer as string).length;
-        // We do it from the config because users may want to set their own price calculation function.
-        result.totalCost = this._config.calcCost(
-          tokensInSystemPrompt + tokensInPrompt,
-          this.tokenizer.encode(result.answer as string).length,
-        );
-
-        onResult?.(result);
+        fullResponse += content;
+        onResponse?.(fullResponse, false);
       }
     };
 
@@ -76,8 +130,7 @@ export class AnthropicLang extends LanguageModel {
       },
       body: JSON.stringify({
         model: this._config.name,
-        prompt:
-          `\n\nHuman: ${this._config.systemPrompt}\n${prompt}\n\nAssistant:`,
+        prompt,
         max_tokens_to_sample: 1000000,
         stream: true,
       }),
@@ -88,10 +141,23 @@ export class AnthropicLang extends LanguageModel {
 
     await processResponseStream(response, onData);
 
-    return result;
+    return fullResponse;
   }
+}
 
-  async chat(messages: LangChatMessages, onResult: (result: LangResultWithString) => void): Promise<LangResultFromChat> {
-    throw new Error("Not implemented yet");
+function getAnhropicRole(normalizedRole: string) {
+  // Just in case
+  const r = normalizedRole.toLowerCase();
+
+  switch (r) {
+    case "system":
+    case "assistant":
+      return "Assistant";
+
+    case "user":
+      return "Human";
+
+    default:
+      throw new Error(`Unknown role: ${normalizedRole}`);
   }
 }

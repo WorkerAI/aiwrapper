@@ -1,7 +1,7 @@
 import { LangModelNames } from "../../info.ts";
 import {
   LangChatMessages,
-  LangResultFromChat,
+  LangResultWithMessages,
   LangResultWithString,
   LanguageModel,
 } from "../language-model.ts";
@@ -128,18 +128,21 @@ export class OpenAILang extends LanguageModel {
 
   async chat(
     messages: LangChatMessages,
-    onResult: (result: LangResultWithString) => void,
-  ): Promise<LangResultFromChat> {
-
-    const messagesStr = JSON.stringify(messages);
-    const lastMessageContent = messages.length > 0 ? messages[messages.length - 1].content : "";
-
+    onResult?: (result: LangResultWithMessages) => void,
+  ): Promise<LangResultWithMessages> {
     const tokensInSystemPrompt =
       this.tokenizer.encode(this._config.systemPrompt).length;
-    const tokensInPrompt = this.tokenizer.encode(messagesStr).length;
 
-    const result = new LangResultWithString(
-      lastMessageContent,
+    // @TODO: check if this is an accurate way to feed tokens to the encoder
+    let messagesStrForCountingTokens = '';
+    messages.forEach((message, _) => {
+      messagesStrForCountingTokens += `${message.content}\n`;
+    });
+
+    const tokensInPrompt = this.tokenizer.encode(messagesStrForCountingTokens).length;
+
+    const result = new LangResultWithMessages(
+      messages,
       tokensInSystemPrompt + tokensInPrompt,
     );
 
@@ -163,6 +166,11 @@ export class OpenAILang extends LanguageModel {
           tokensInSystemPrompt + tokensInPrompt,
           this.tokenizer.encode(result.answer as string).length,
         );
+
+        result.messages = [...messages, {
+          role: "assistant",
+          content: deltaContent,
+        }];
 
         onResult?.(result);
       }
@@ -205,21 +213,6 @@ export class OpenAILang extends LanguageModel {
 
     await processResponseStream(response, onData);
 
-
-    const messagesWithAnswer = [...messages, {
-      role: "assistant",
-      content: result.answer
-    }];
-
-    const resultWithMessages = new LangResultFromChat(messagesWithAnswer, 0)
-    resultWithMessages.prompt = result.prompt;
-    resultWithMessages.answer = result.answer;
-
-    return resultWithMessages;
-
-    /**
-     * @TODO:
-     * - [ ]
-     */
+    return result;
   }
 }

@@ -23,9 +23,9 @@ export abstract class LanguageModel {
   ): Promise<LangResultWithString>;
 
   abstract chat(
-    messages: any,
-    onResult: (result: LangResultWithString) => void,
-  ): Promise<LangResultWithString>;
+    messages: LangChatMessages,
+    onResult: (result: LangResultWithMessages) => void,
+  ): Promise<LangResultWithMessages>;
 
   async askForJSON(
     promptObj: PromptForJSON,
@@ -155,7 +155,7 @@ export type LangChatMessages = {
 }[];
 
 
-export class LangResultFromChat implements LangProcessingResult {
+export class LangResultWithMessages implements LangProcessingResult {
   prompt: string;
   answer: string;
   messages: LangChatMessages = [];
