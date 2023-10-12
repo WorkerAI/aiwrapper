@@ -94,6 +94,11 @@ export class AnthropicLang extends LanguageModel {
         this.tokenizer.encode(result.answer as string).length,
       );
 
+      result.messages = [...messages, {
+        role: "assistant",
+        content: result.answer,
+      }];
+
       onResult?.(result);
     });
 

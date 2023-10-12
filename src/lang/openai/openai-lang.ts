@@ -169,7 +169,7 @@ export class OpenAILang extends LanguageModel {
 
         result.messages = [...messages, {
           role: "assistant",
-          content: deltaContent,
+          content: result.answer,
         }];
 
         onResult?.(result);
