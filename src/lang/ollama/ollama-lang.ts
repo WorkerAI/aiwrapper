@@ -1,5 +1,5 @@
 import { LangModelNames } from "../../info.ts";
-import { LangResultWithString, LanguageModel } from "../language-model.ts";
+import { LangChatMessages, LangResultFromChat, LangResultWithString, LanguageModel } from "../language-model.ts";
 import { DecisionOnNotOkResponse, httpRequestWithRetry as fetch } from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
 
@@ -83,5 +83,9 @@ export class OllamaLang extends LanguageModel {
     await processResponseStream(response, onData);
 
     return result;
+  }
+
+  async chat(messages: LangChatMessages, onResult: (result: LangResultWithString) => void): Promise<LangResultFromChat> {
+    throw new Error("Not implemented yet");
   }
 }

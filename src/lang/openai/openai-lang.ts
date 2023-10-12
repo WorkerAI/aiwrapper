@@ -1,6 +1,14 @@
 import { LangModelNames } from "../../info.ts";
-import { LangResultWithString, LanguageModel } from "../language-model.ts";
-import { DecisionOnNotOkResponse, httpRequestWithRetry as fetch } from "../../http-request.ts";
+import {
+  LangChatMessages,
+  LangResultFromChat,
+  LangResultWithString,
+  LanguageModel,
+} from "../language-model.ts";
+import {
+  DecisionOnNotOkResponse,
+  httpRequestWithRetry as fetch,
+} from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
 
 export type OpenAILangOptions = {
@@ -36,10 +44,13 @@ export class OpenAILang extends LanguageModel {
     onResult?: (result: LangResultWithString) => void,
   ): Promise<LangResultWithString> {
     const tokensInSystemPrompt =
-    this.tokenizer.encode(this._config.systemPrompt).length;
+      this.tokenizer.encode(this._config.systemPrompt).length;
     const tokensInPrompt = this.tokenizer.encode(prompt).length;
 
-    const result = new LangResultWithString(prompt, tokensInSystemPrompt + tokensInPrompt);
+    const result = new LangResultWithString(
+      prompt,
+      tokensInSystemPrompt + tokensInPrompt,
+    );
 
     const onData = (data: any) => {
       if (data.finished) {
@@ -90,15 +101,19 @@ export class OpenAILang extends LanguageModel {
         if (res.status === 401) {
           // We don't retry if the API key is invalid.
           decision.retry = false;
-          throw new Error("API key is invalid. Please check your API key and try again.");
+          throw new Error(
+            "API key is invalid. Please check your API key and try again.",
+          );
         }
 
         if (res.status === 400) {
           // We don't retry if the model is invalid.
           decision.retry = false;
-          throw new Error("Bad Request. Please make sure you send valid data. Could be that the message is too large.");
+          throw new Error(
+            "Bad Request. Please make sure you send valid data. Could be that the message is too large.",
+          );
         }
-        
+
         return decision;
       },
     })
@@ -109,5 +124,102 @@ export class OpenAILang extends LanguageModel {
     await processResponseStream(response, onData);
 
     return result;
+  }
+
+  async chat(
+    messages: LangChatMessages,
+    onResult: (result: LangResultWithString) => void,
+  ): Promise<LangResultFromChat> {
+
+    const messagesStr = JSON.stringify(messages);
+    const lastMessageContent = messages.length > 0 ? messages[messages.length - 1].content : "";
+
+    const tokensInSystemPrompt =
+      this.tokenizer.encode(this._config.systemPrompt).length;
+    const tokensInPrompt = this.tokenizer.encode(messagesStr).length;
+
+    const result = new LangResultWithString(
+      lastMessageContent,
+      tokensInSystemPrompt + tokensInPrompt,
+    );
+
+    const onData = (data: any) => {
+      if (data.finished) {
+        result.finished = true;
+        onResult?.(result);
+        return;
+      }
+
+      if (data.choices !== undefined) {
+        const deltaContent = data.choices[0].delta.content
+          ? data.choices[0].delta.content
+          : "";
+
+        result.answer += deltaContent;
+        result.totalTokens = tokensInSystemPrompt + tokensInPrompt +
+          this.tokenizer.encode(result.answer as string).length;
+        // We do it from the config because users may want to set their own price calculation function.
+        result.totalCost = this._config.calcCost(
+          tokensInSystemPrompt + tokensInPrompt,
+          this.tokenizer.encode(result.answer as string).length,
+        );
+
+        onResult?.(result);
+      }
+    };
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${this._config.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: this._config.name,
+        messages,
+        stream: true,
+      }),
+      onNotOkResponse: (res, decision): DecisionOnNotOkResponse => {
+        if (res.status === 401) {
+          // We don't retry if the API key is invalid.
+          decision.retry = false;
+          throw new Error(
+            "API key is invalid. Please check your API key and try again.",
+          );
+        }
+
+        if (res.status === 400) {
+          // We don't retry if the model is invalid.
+          decision.retry = false;
+          throw new Error(
+            "Bad Request. Please make sure you send valid data. Could be that the message is too large.",
+          );
+        }
+
+        return decision;
+      },
+    })
+      .catch((err) => {
+        throw new Error(err);
+      });
+
+    await processResponseStream(response, onData);
+
+
+    const messagesWithAnswer = [...messages, {
+      role: "assistant",
+      content: result.answer
+    }];
+
+    const resultWithMessages = new LangResultFromChat(messagesWithAnswer, 0)
+    resultWithMessages.prompt = result.prompt;
+    resultWithMessages.answer = result.answer;
+
+    return resultWithMessages;
+
+    /**
+     * @TODO:
+     * - [ ]
+     */
   }
 }

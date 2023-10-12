@@ -1,5 +1,5 @@
 import * as info from "../info.ts";
-import { PromptForJSON, buildPromptForGettingJSON } from "./prompt-for-json.ts";
+import { buildPromptForGettingJSON, PromptForJSON } from "./prompt-for-json.ts";
 import { Tokenizer } from "../lang/tokens/tokenizer.ts";
 import extractJSON from "./json/extract-json.ts";
 import langConstCalc from "./lang-cost-calc.ts";
@@ -22,6 +22,11 @@ export abstract class LanguageModel {
     onResult: (result: LangResultWithString) => void,
   ): Promise<LangResultWithString>;
 
+  abstract chat(
+    messages: any,
+    onResult: (result: LangResultWithString) => void,
+  ): Promise<LangResultWithString>;
+
   async askForJSON(
     promptObj: PromptForJSON,
     onResult?: (result: LangResultWithObject) => void,
@@ -29,7 +34,10 @@ export abstract class LanguageModel {
     let trialsLeft = 3;
     const trials = trialsLeft;
     const prompt = buildPromptForGettingJSON(promptObj);
-    const result = new LangResultWithObject(prompt, this.tokenizer.encode(prompt).length);
+    const result = new LangResultWithObject(
+      prompt,
+      this.tokenizer.encode(prompt).length,
+    );
 
     while (trialsLeft > 0) {
       trialsLeft--;
@@ -40,7 +48,7 @@ export abstract class LanguageModel {
           result.totalTokens = r.totalTokens;
           result.totalCost = r.totalCost;
           result.finished = r.finished;
-        
+
           onResult?.(result);
         },
       );
@@ -89,8 +97,8 @@ export class LangResultWithString implements LangProcessingResult {
   answer: string;
   totalTokens: number;
   promptTokens: number;
-  totalCost: string = "0";
-  finished: boolean = false;
+  totalCost = "0";
+  finished = false;
   // durationMs: number;
 
   constructor(
@@ -105,7 +113,7 @@ export class LangResultWithString implements LangProcessingResult {
   }
 
   toString(): string {
-    return this.answer;  
+    return this.answer;
   }
 
   abort(): void {
@@ -133,11 +141,46 @@ export class LangResultWithObject implements LangProcessingResult {
   }
 
   toString(): string {
-
     if (Object.keys(this.answerObj).length === 0) {
       return this.answer;
     }
 
     return JSON.stringify(this.answerObj);
+  }
+}
+
+export type LangChatMessages = {
+  role: string;
+  content: string;
+}[];
+
+
+export class LangResultFromChat implements LangProcessingResult {
+  prompt: string;
+  answer: string;
+  messages: LangChatMessages = [];
+  totalTokens: number;
+  promptTokens: number;
+  totalCost = "0";
+  finished = false;
+
+  constructor(
+    messages: LangChatMessages,
+    promptTokens: number,
+  ) {
+    // The prompt is the latest message
+    this.prompt = messages.length > 0 ? messages[messages.length - 1].content : "";
+    this.answer = "";
+    this.totalTokens = 0;
+    this.promptTokens = promptTokens;
+    this.finished;
+  }
+
+  toString(): string {
+    return this.answer;
+  }
+
+  abort(): void {
+    throw new Error("Not implemented yet");
   }
 }

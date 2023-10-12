@@ -3,7 +3,7 @@ import { AnthropicLang, AnthropicLangOptions  } from "./anthropic/anthropic-lang
 import { OllamaLang, OllamaLangOptions } from "./ollama/ollama-lang.ts";
 
 /**
- * Lang is a factory class for creating language models from different providers. 
+ * Lang is a factory class for using language models from different providers. 
  */
 export abstract class Lang {
   static openai(options: OpenAILangOptions): OpenAILang {
