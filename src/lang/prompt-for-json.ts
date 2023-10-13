@@ -1,15 +1,15 @@
-export type PromptForJSON = {
+export type PromptForObject = {
   // @TODO: make title and description optional
   title?: string;
   description?: string;
   instructions: string[];
-  outputExamples: object[];
+  objectExamples: object[];
   content?: {
     [key: string]: string;
   };
 };
 
-export function buildPromptForGettingJSON(prompt: PromptForJSON): string {
+export function buildPromptForGettingJSON(prompt: PromptForObject): string {
   const instructionsCount = prompt.instructions
     ? prompt.instructions.length
     : 0;
@@ -28,9 +28,9 @@ export function buildPromptForGettingJSON(prompt: PromptForJSON): string {
   }
 
   let exampleOutputs = "";
-  if (prompt.outputExamples && prompt.outputExamples.length > 0) {
+  if (prompt.objectExamples && prompt.objectExamples.length > 0) {
     exampleOutputs = `## Examples of Output\n${
-      prompt.outputExamples
+      prompt.objectExamples
         .map((example) => JSON.stringify(example, null, 2))
         .join("\n\n")
     }`;

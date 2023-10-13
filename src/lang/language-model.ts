@@ -1,5 +1,5 @@
 import * as info from "../info.ts";
-import { buildPromptForGettingJSON, PromptForJSON } from "./prompt-for-json.ts";
+import { buildPromptForGettingJSON, PromptForObject } from "./prompt-for-json.ts";
 import { Tokenizer } from "../lang/tokens/tokenizer.ts";
 import extractJSON from "./json/extract-json.ts";
 import langConstCalc from "./lang-cost-calc.ts";
@@ -27,8 +27,8 @@ export abstract class LanguageModel {
     onResult: (result: LangResultWithMessages) => void,
   ): Promise<LangResultWithMessages>;
 
-  async askForJSON(
-    promptObj: PromptForJSON,
+  async askForObject(
+    promptObj: PromptForObject,
     onResult?: (result: LangResultWithObject) => void,
   ): Promise<LangResultWithObject> {
     let trialsLeft = 3;
