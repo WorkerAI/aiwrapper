@@ -1,17 +1,17 @@
 # AIWrapper
 A Universal AI Wrapper for JavaScript & TypeScript
 
-Generate text, images, and voice from anywhere—servers, browsers and apps. It works in anything that runs JavaScript.
+Generate text, images, and voice from anywhere—servers, browsers and apps. AIWrapper works in anything that runs JavaScript.
 
 ## Features
 - Generate text, images, and voice with a simple API
 - Easily calculate cost of usage
-- Output valid JSON & Schemas from LLMs
+- Output objects based on needed schemas from LLMs
 - Swap models quickly or chain different models together
 - Use it with JavaScript or TypeScript from anywhere
 
 ## Installation
-Install with npm, import in Deno by URL or download and use directly.
+Install with npm or import in Deno by URL.
 
 ### NPM
 ```bash
