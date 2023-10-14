@@ -145,7 +145,7 @@ async function askForStoriesBehindTheNames() {
 const namesWithStories = await askForStoriesBehindTheNames();
 ```
 
-### Calculating costs
+### Calculating Cost
 ```javascript
 // We can get the cost of using models from result.totalCost
 const result = await lang.ask('Say a nice hello in about 200 characters');
