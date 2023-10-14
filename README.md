@@ -1,5 +1,5 @@
 # AIWrapper
-A Universal AI Wrapper for JavaScript & TypeScript
+A universal AI wrapper for JavaScript & TypeScript.
 
 Generate text, images, and voice from anywhere—servers, browsers and apps. AIWrapper works in anything that runs JavaScript.
 
