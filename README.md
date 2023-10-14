@@ -145,6 +145,51 @@ async function askForStoriesBehindTheNames() {
 const namesWithStories = await askForStoriesBehindTheNames();
 ```
 
+### Complex Object
+```javascript
+// When you work with complex objects it's better to define them as classes or types.
+class Task {
+  constructor(name, description, tasks) {
+    this.name = name;
+    this.description = description;
+    this.tasks = tasks;
+  }
+}
+
+async function getTask() {
+  // In this case we represent the schema. You may also treat it 
+  // as a few shot example.
+  const exampleTask = new Task("Root Task", "This is the task that has subtasks", [
+    new Task("Task A1", "This is task A1", []),
+    new Task("Task A2", "This is task A2", []),
+  ]);
+
+  const taskPrompt = {
+    instructions: [
+      "Reflect on the objective and tasks (from the Objective section) step by step. Ensure that you understand them; identify any ambiguities or gaps in information. The Context section offers relevant information. Feel free to add critique or insights about the objective.",
+      "Create a tree of tasks. If the task is complex, break it down into subtasks, following the KISS principle. Each task should have a clear, actionable title, and a reasoning. If there are ambiguities or gaps in information, start by posing follow-up questions.",
+    ],
+    outputExamples: [
+      exampleTask,
+    ],
+    content: {
+      "Objective":
+        "Make me $1 000 000 in 3 years. I have $10000 to spare and can live without income for 18 months. I only want to do it by starting a business. Be my CEO.",
+      "Context": "I'm a software developer and a digital nomad",
+    },
+  };
+
+  const result = await lang.askForObject(taskPrompt, res => { 
+    console.log(res.answer);
+  });
+
+  
+  return result.answerObject
+}
+
+const task = await getTask();
+```
+
 ### Calculating Cost
 ```javascript
 // We can get the cost of using models from result.totalCost
