@@ -91,4 +91,4 @@ if (isInNodeServer) {
   });
 }
 
-export * from "./lang/index.js";
+export * from "./index.js";

@@ -27,4 +27,4 @@ encodeBase64Impl((str) => {
   return encodeBase64(textArrayBuffer);
 });
 
-export * from "./src/lang/index.ts";
+export * from "./src/index.ts";
