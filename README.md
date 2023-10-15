@@ -145,7 +145,7 @@ async function askForStoriesBehindTheNames() {
 const namesWithStories = await askForStoriesBehindTheNames();
 ```
 
-### Complex Objects
+### Getting Complex Objects
 ```javascript
 // When you work with complex objects it's better to define them as classes or types.
 class Task {
