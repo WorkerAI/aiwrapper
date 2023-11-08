@@ -65,6 +65,7 @@ export class OpenAILang extends LanguageModel {
           : "";
 
         result.answer += deltaContent;
+        
         result.totalTokens = tokensInSystemPrompt + tokensInPrompt +
           this.tokenizer.encode(result.answer as string).length;
         // We do it from the config because users may want to set their own price calculation function.

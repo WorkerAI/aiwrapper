@@ -8,6 +8,7 @@ import { Tokenizer } from "./lang/tokens/tokenizer.ts";
 export type OpenAILangModelNames =
   | "gpt-4"
   | "gpt-4-32"
+  | "gpt-4-1106-preview"
   | "gpt-3.5-turbo"
   | "gpt-3.5-turbo-16"
   | "text-embedding-ada-002";
@@ -29,6 +30,7 @@ export const langPricePerToken = new Map<string, [number, number]>([
   /* OpenAI */
   ["gpt-4", [0.00003, 0.00006]],
   ["gpt-4-32", [0.00006, 0.00012]],
+  ["gpt-4-1106-preview", [0.00001, 0.00003]],
   ["gpt-3.5-turbo", [0.0000015, 0.000002]],
   ["gpt-3.5-turbo-16", [0.000003, 0.000004]],
   ["text-embedding-ada-002", [0.0000001, 0]],

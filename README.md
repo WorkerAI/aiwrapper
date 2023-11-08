@@ -3,6 +3,9 @@ A universal AI wrapper for JavaScript & TypeScript.
 
 Generate text, images, and voice from anywhere—servers, browsers and apps. AIWrapper works in anything that runs JavaScript.
 
+> :warning: **It's in early WIP stage and the API may change.**
+
+
 ## Features
 - Generate text, images, and voice with a simple API
 - Easily calculate cost of usage
