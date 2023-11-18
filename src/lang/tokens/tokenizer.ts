@@ -9,7 +9,7 @@ export interface Tokenizer {
 export function encodeBpe(input: string, mergeableRanks: Map<string, number>): number[] {
   const encoder = new TextEncoder();
   const uint8array = encoder.encode(input);
-  
+
   let parts: Uint8Array[] = Array.from(uint8array).map(b => new Uint8Array([b]));
 
   while (true) {

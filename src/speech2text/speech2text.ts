@@ -48,7 +48,7 @@ export class OpenAISpeech2Text {
       const data = await response.json();
       return data.text;
     } else {
-      throw new Error('Error:', response);
+      throw new Error("Failed to convert speech to text.");
     }
   }
 }

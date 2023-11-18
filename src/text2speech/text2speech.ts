@@ -59,7 +59,7 @@ export class ElevenLabsTextToSpeech {
       const audioUrl = URL.createObjectURL(data);
       return audioUrl;
     } else {
-      throw new Error('Error:', response.status);
+      throw new Error("Failed to convert text to speech.");
     }
   }
 }

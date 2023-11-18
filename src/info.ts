@@ -56,6 +56,7 @@ export const getTokenizerBasedOnModel = (model: string): Tokenizer => {
     case "gpt-4-32":
     case "gpt-3.5-turbo":
     case "text-embedding-ada-002":
+    case "gpt-4-1106-preview":
     case "mistral":
       return new Tokenizer_cl100k_base();
     case "claude-2":
