@@ -54,18 +54,29 @@ export abstract class LanguageModel {
       );
 
       const jsonObj = extractJSON(res.answer);
-
       if (jsonObj !== null) {
         result.answerObj = jsonObj;
       }
 
-      // @TODO: validate the object against the schema from exampleOutputs
-
-      if (result.answerObj !== null) {
-        break;
-      } else if (result.answerObj === null && trialsLeft <= 0) {
+      if (result.answerObj === null && trialsLeft <= 0) {
         throw new Error(`Failed to parse JSON after ${trials} trials`);
+      } else if (result.answerObj === null) {
+        console.log(`Failed to parse JSON, trying again...`);
+        continue;
       }
+
+      // @TODO: make sure examples themselves have consistent schemas
+      const firstExample = promptObj.objectExamples[0];
+      const shemasAreMatching = schemasAreMatching(firstExample, result.answerObj);
+
+      if (!shemasAreMatching && trialsLeft <= 0) {
+        throw new Error(`The parsed JSON doesn't match the schema after ${trials} trials`);
+      } else if (!shemasAreMatching) {
+        console.log(`The parsed JSON doesn't match the schema, trying again...`);
+        continue;
+      }
+
+      break;
     }
 
     result.finished = true;
@@ -82,6 +93,24 @@ export abstract class LanguageModel {
   ): string => {
     return langConstCalc(this.name, inTokens, outTokens);
   };
+}
+
+function schemasAreMatching(example: any, target: any): boolean {
+  // If both are arrays
+  if (Array.isArray(example) && Array.isArray(target)) {
+    return true;
+  }
+
+  // If both are objects
+  if (typeof example === 'object' && typeof target === 'object') {
+    const exampleKeys = Object.keys(example);
+    const targetKeys = Object.keys(target);
+
+    return exampleKeys.length === targetKeys.length && exampleKeys.every(key => targetKeys.includes(key));
+  }
+
+  // If example and target are neither arrays nor objects, they don't match the schema
+  return false;
 }
 
 interface LangProcessingResult {
