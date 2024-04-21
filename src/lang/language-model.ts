@@ -1,8 +1,5 @@
-import * as info from "../info.ts";
 import { buildPromptForGettingJSON, PromptForObject } from "./prompt-for-json.ts";
-import { Tokenizer } from "../lang/tokens/tokenizer.ts";
 import extractJSON from "./json/extract-json.ts";
-import langConstCalc from "./lang-cost-calc.ts";
 
 /**
  * LanguageModel is an abstract class that represents a language model and
@@ -10,11 +7,9 @@ import langConstCalc from "./lang-cost-calc.ts";
  */
 export abstract class LanguageModel {
   readonly name: string;
-  readonly tokenizer: Tokenizer;
 
   constructor(name: string) {
     this.name = name;
-    this.tokenizer = info.getTokenizerBasedOnModel(name);
   }
 
   abstract ask(
@@ -36,7 +31,6 @@ export abstract class LanguageModel {
     const prompt = buildPromptForGettingJSON(promptObj);
     const result = new LangResultWithObject(
       prompt,
-      this.tokenizer.encode(prompt).length,
     );
 
     while (trialsLeft > 0) {
@@ -45,8 +39,6 @@ export abstract class LanguageModel {
         prompt,
         (r) => {
           result.answer = r.answer;
-          result.totalTokens = r.totalTokens;
-          result.totalCost = r.totalCost;
           result.finished = r.finished;
 
           onResult?.(result);
@@ -86,13 +78,6 @@ export abstract class LanguageModel {
 
     return result;
   }
-
-  defaultCalcCost = (
-    inTokens: number,
-    outTokens: number,
-  ): string => {
-    return langConstCalc(this.name, inTokens, outTokens);
-  };
 }
 
 function schemasAreMatching(example: any, target: any): boolean {
@@ -115,29 +100,19 @@ function schemasAreMatching(example: any, target: any): boolean {
 
 interface LangProcessingResult {
   prompt: string;
-  totalTokens: number;
-  promptTokens: number;
-  totalCost: string;
   finished: boolean;
 }
 
 export class LangResultWithString implements LangProcessingResult {
   prompt: string;
   answer: string;
-  totalTokens: number;
-  promptTokens: number;
-  totalCost = "0";
   finished = false;
-  // durationMs: number;
 
   constructor(
-    prompt: string,
-    promptTokens: number,
+    prompt: string
   ) {
     this.prompt = prompt;
     this.answer = "";
-    this.totalTokens = 0;
-    this.promptTokens = promptTokens;
     this.finished;
   }
 
@@ -154,18 +129,13 @@ export class LangResultWithObject implements LangProcessingResult {
   answerObj: object = {};
   answer = "";
   prompt: string;
-  totalTokens: number;
-  promptTokens: number;
   totalCost = "0";
   finished = false;
 
   constructor(
     prompt: string,
-    promptTokens: number,
   ) {
     this.prompt = prompt;
-    this.totalTokens = 0;
-    this.promptTokens = promptTokens;
     this.finished;
   }
 
@@ -189,19 +159,16 @@ export class LangResultWithMessages implements LangProcessingResult {
   answer: string;
   messages: LangChatMessages = [];
   totalTokens: number;
-  promptTokens: number;
   totalCost = "0";
   finished = false;
 
   constructor(
     messages: LangChatMessages,
-    promptTokens: number,
   ) {
     // The prompt is the latest message
     this.prompt = messages.length > 0 ? messages[messages.length - 1].content : "";
     this.answer = "";
     this.totalTokens = 0;
-    this.promptTokens = promptTokens;
     this.finished;
   }
 

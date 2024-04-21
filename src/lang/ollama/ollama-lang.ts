@@ -1,20 +1,17 @@
-import { LangModelNames } from "../../info.ts";
 import { LangChatMessages, LangResultWithMessages, LangResultWithString, LanguageModel } from "../language-model.ts";
-import { DecisionOnNotOkResponse, httpRequestWithRetry as fetch } from "../../http-request.ts";
+import { httpRequestWithRetry as fetch } from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
 
 export type OllamaLangOptions = {
   url?: string;
   model?: string;
   systemPrompt?: string;
-  customCalcCost?: (inTokens: number, outTokens: number) => string;
 };
 
 export type OllamaLangConfig = {
   url: string;
   name: string;
   systemPrompt: string;
-  calcCost: (inTokens: number, outTokens: number) => string;
 };
 
 export class OllamaLang extends LanguageModel {
@@ -27,7 +24,6 @@ export class OllamaLang extends LanguageModel {
       url: options.url || "http://localhost:11434/",
       name: modelName,
       systemPrompt: options.systemPrompt || `You are a helpful assistant.`,
-      calcCost: options.customCalcCost || this.defaultCalcCost,
     };
   }
 
@@ -35,11 +31,7 @@ export class OllamaLang extends LanguageModel {
     prompt: string,
     onResult?: (result: LangResultWithString) => void,
   ): Promise<LangResultWithString> {
-    const tokensInSystemPrompt =
-    this.tokenizer.encode(this._config.systemPrompt).length;
-    const tokensInPrompt = this.tokenizer.encode(prompt).length;
-
-    const result = new LangResultWithString(prompt, tokensInSystemPrompt + tokensInPrompt);
+    const result = new LangResultWithString(prompt);
 
     const onData = (data: any) => {
       if (data.finished) {
@@ -53,14 +45,6 @@ export class OllamaLang extends LanguageModel {
           ? data.response
           : "";
 
-        result.answer += deltaContent;
-        result.totalTokens = tokensInSystemPrompt + tokensInPrompt +
-          this.tokenizer.encode(result.answer as string).length;
-        // We do it from the config because users may want to set their own price calculation function.
-        result.totalCost = this._config.calcCost(
-          tokensInSystemPrompt + tokensInPrompt,
-          this.tokenizer.encode(result.answer as string).length,
-        );
 
         onResult?.(result);
       }

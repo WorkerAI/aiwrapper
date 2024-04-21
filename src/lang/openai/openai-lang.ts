@@ -15,14 +15,12 @@ export type OpenAILangOptions = {
   apiKey: string;
   model?: LangModelNames;
   systemPrompt?: string;
-  customCalcCost?: (inTokens: number, outTokens: number) => string;
 };
 
 export type OpenAILangConfig = {
   apiKey: string;
   name: LangModelNames;
   systemPrompt: string;
-  calcCost: (inTokens: number, outTokens: number) => string;
 };
 
 export class OpenAILang extends LanguageModel {
@@ -35,7 +33,6 @@ export class OpenAILang extends LanguageModel {
       apiKey: options.apiKey,
       name: modelName,
       systemPrompt: options.systemPrompt || `You are a helpful assistant.`,
-      calcCost: options.customCalcCost || this.defaultCalcCost,
     };
   }
 
@@ -43,13 +40,8 @@ export class OpenAILang extends LanguageModel {
     prompt: string,
     onResult?: (result: LangResultWithString) => void,
   ): Promise<LangResultWithString> {
-    const tokensInSystemPrompt =
-      this.tokenizer.encode(this._config.systemPrompt).length;
-    const tokensInPrompt = this.tokenizer.encode(prompt).length;
-
     const result = new LangResultWithString(
       prompt,
-      tokensInSystemPrompt + tokensInPrompt,
     );
 
     const onData = (data: any) => {
@@ -65,14 +57,6 @@ export class OpenAILang extends LanguageModel {
           : "";
 
         result.answer += deltaContent;
-        
-        result.totalTokens = tokensInSystemPrompt + tokensInPrompt +
-          this.tokenizer.encode(result.answer as string).length;
-        // We do it from the config because users may want to set their own price calculation function.
-        result.totalCost = this._config.calcCost(
-          tokensInSystemPrompt + tokensInPrompt,
-          this.tokenizer.encode(result.answer as string).length,
-        );
 
         onResult?.(result);
       }
@@ -131,20 +115,8 @@ export class OpenAILang extends LanguageModel {
     messages: LangChatMessages,
     onResult?: (result: LangResultWithMessages) => void,
   ): Promise<LangResultWithMessages> {
-    const tokensInSystemPrompt =
-      this.tokenizer.encode(this._config.systemPrompt).length;
-
-    // @TODO: check if this is an accurate way to feed tokens to the encoder
-    let messagesStrForCountingTokens = '';
-    messages.forEach((message, _) => {
-      messagesStrForCountingTokens += `${message.content}\n`;
-    });
-
-    const tokensInPrompt = this.tokenizer.encode(messagesStrForCountingTokens).length;
-
     const result = new LangResultWithMessages(
       messages,
-      tokensInSystemPrompt + tokensInPrompt,
     );
 
     const onData = (data: any) => {
@@ -160,13 +132,6 @@ export class OpenAILang extends LanguageModel {
           : "";
 
         result.answer += deltaContent;
-        result.totalTokens = tokensInSystemPrompt + tokensInPrompt +
-          this.tokenizer.encode(result.answer as string).length;
-        // We do it from the config because users may want to set their own price calculation function.
-        result.totalCost = this._config.calcCost(
-          tokensInSystemPrompt + tokensInPrompt,
-          this.tokenizer.encode(result.answer as string).length,
-        );
 
         result.messages = [...messages, {
           role: "assistant",

@@ -9,7 +9,6 @@
 import { setHttpRequestImpl } from "./http-request.js";
 import { setProcessResponseStreamImpl } from "./process-response-stream.js";
 import processLinesFromStream from "./lang/process-lines-from-stream.js";
-import { decodeBase64Impl, encodeBase64Impl, encodeBytesToBase64Impl } from "./lang/tokens/base64.ts";
 
 let nodeFetch;
 const isInNodeServer = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
@@ -28,32 +27,6 @@ setHttpRequestImpl((url, options) => {
   // A regular browser's fetch
   return fetch(url, options);
 });
-
-decodeBase64Impl((str) => {
-  if (isInNodeServer) {
-    // Because NodeJS doesn't have browser's atob yet
-    return Buffer.from(str, 'base64').toString('binary');
-  }
-
-  // A regular browser's atob
-  return atob(str);
-});
-
-encodeBase64Impl((str) => {
-  if (isInNodeServer) {
-    // Because NodeJS doesn't have browser's btoa yet
-    return Buffer.from(str, 'binary').toString('base64');
-  }
-
-  // A regular browser's btoa
-  return btoa(str);
-});
-
-if (isInNodeServer) {
-  encodeBytesToBase64Impl((bytes) => {
-    return Buffer.from(bytes).toString('base64');
-  });
-}
 
 if (isInNodeServer) {
   // For processing response streams from Node.

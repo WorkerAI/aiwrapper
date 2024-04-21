@@ -11,13 +11,11 @@ import {
 export type AnthropicLangOptions = {
   apiKey: string;
   model?: LangModelNames;
-  customCalcCost?: (inTokens: number, outTokens: number) => string;
 };
 
 export type AnthropicLangConfig = {
   apiKey: string;
   name: LangModelNames;
-  calcCost: (inTokens: number, outTokens: number) => string;
 };
 
 export class AnthropicLang extends LanguageModel {
@@ -30,7 +28,6 @@ export class AnthropicLang extends LanguageModel {
     this._config = {
       apiKey: options.apiKey,
       name: modelName,
-      calcCost: options.customCalcCost || this.defaultCalcCost,
     };
     this.name = this._config.name;
   }
@@ -39,11 +36,8 @@ export class AnthropicLang extends LanguageModel {
     prompt: string,
     onResult?: (result: LangResultWithString) => void,
   ): Promise<LangResultWithString> {
-    const tokensInPrompt = this.tokenizer.encode(prompt).length;
-
     const result = new LangResultWithString(
-      prompt,
-      tokensInPrompt,
+      prompt
     );
 
     await this._generate_internal(
@@ -52,13 +46,6 @@ export class AnthropicLang extends LanguageModel {
       (res, finished) => {
         result.finished = finished;
         result.answer = res;
-        result.totalTokens = tokensInPrompt +
-          this.tokenizer.encode(result.answer as string).length;
-        // We do it from the config because users may want to set their own price calculation function.
-        result.totalCost = this._config.calcCost(
-          tokensInPrompt,
-          this.tokenizer.encode(result.answer as string).length,
-        );
 
         onResult?.(result);
       },
@@ -79,20 +66,11 @@ export class AnthropicLang extends LanguageModel {
         }: ${message.content}`;
     }, "") + "\n\nAssistant:";
 
-    const prevMessagesTokens = this.tokenizer.encode(messagesStr).length;
-    const result = new LangResultWithMessages(messages, prevMessagesTokens);
+    const result = new LangResultWithMessages(messages);
 
     await this._generate_internal(messagesStr, (res, finished) => {
       result.finished = finished;
       result.answer = res;
-      result.totalTokens = prevMessagesTokens +
-        this.tokenizer.encode(result.answer as string)
-          .length;
-      // We do it from the config because users may want to set their own price calculation function.
-      result.totalCost = this._config.calcCost(
-        prevMessagesTokens,
-        this.tokenizer.encode(result.answer as string).length,
-      );
 
       result.messages = [...messages, {
         role: "assistant",
