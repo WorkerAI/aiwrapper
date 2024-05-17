@@ -129,7 +129,6 @@ export class LangResultWithObject implements LangProcessingResult {
   answerObj: object = {};
   answer = "";
   prompt: string;
-  totalCost = "0";
   finished = false;
 
   constructor(
@@ -158,8 +157,6 @@ export class LangResultWithMessages implements LangProcessingResult {
   prompt: string;
   answer: string;
   messages: LangChatMessages = [];
-  totalTokens: number;
-  totalCost = "0";
   finished = false;
 
   constructor(
@@ -168,7 +165,6 @@ export class LangResultWithMessages implements LangProcessingResult {
     // The prompt is the latest message
     this.prompt = messages.length > 0 ? messages[messages.length - 1].content : "";
     this.answer = "";
-    this.totalTokens = 0;
     this.finished;
   }
 
