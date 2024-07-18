@@ -28,11 +28,12 @@ export class AnthropicLang extends LanguageModel {
   _config: AnthropicLangConfig;
 
   constructor(options: AnthropicLangOptions) {
-    const modelName = options.model || "claude-2";
+    const modelName = options.model || "claude-3-5-sonnet-20240620";
     super(modelName);
     this._config = {
       apiKey: options.apiKey,
       name: modelName,
+      systemPrompt: options.systemPrompt,
     };
     this.name = this._config.name;
   }
@@ -62,6 +63,20 @@ export class AnthropicLang extends LanguageModel {
     messages: LangChatMessages,
     onResult?: (result: LangResultWithMessages) => void,
   ): Promise<LangResultWithMessages> {
+    
+    // Remove all system messages, save the first one if it exists.
+    let detectedSystemMessage = "";
+    messages = messages.filter((message) => {
+      if (message.role === "system") {
+        if (!detectedSystemMessage) {
+          // Saving the first system message.
+          detectedSystemMessage = message.content;
+        }
+        return false;
+      }
+      return true;
+    });
+
     const result = new LangResultWithMessages(
       messages,
     );
@@ -100,66 +115,6 @@ export class AnthropicLang extends LanguageModel {
       }
     };
 
-    /*
-    const onData = (data: any) => {
-      switch (data.type) {
-        case "message_start":
-          // Handle message_start event
-          result.answer = "";
-          result.messages = [];
-          break;
-
-        case "content_block_start":
-          // Handle content_block_start event
-          // Initialize or reset any necessary state for a new content block
-          break;
-
-        case "content_block_delta": {
-          // Handle content_block_delta event
-          const deltaContent = data.delta.text ? data.delta.text : "";
-          result.answer += deltaContent;
-          break;
-        }
-
-        case "content_block_stop":
-          // Handle content_block_stop event
-          // Finalize the content block if necessary
-          break;
-
-        case "message_delta": {
-          // Handle message_delta event
-          const choices = data.delta.choices;
-          if (choices && choices.length > 0) {
-            const deltaContent = choices[0].delta.content
-              ? choices[0].delta.content
-              : "";
-            result.answer += deltaContent;
-            result.messages = [
-              ...messages,
-              {
-                role: "assistant",
-                content: result.answer,
-              },
-            ];
-            onResult?.(result);
-          }
-          break;
-        }
-
-        case "message_stop": {
-          // Handle message_stop event
-          result.finished = true;
-          onResult?.(result);
-          break;
-        }
-
-        default:
-          // Handle unknown event types if necessary
-          break;
-      }
-    };
-    */
-
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -171,6 +126,7 @@ export class AnthropicLang extends LanguageModel {
         model: this._config.name,
         messages: messages,
         max_tokens: 4096,
+        system: this._config.systemPrompt ? this._config.systemPrompt : detectedSystemMessage,
         stream: true,
       }),
       onNotOkResponse: async (
