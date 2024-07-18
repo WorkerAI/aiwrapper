@@ -41,7 +41,7 @@ export interface HttpRequestInit {
 export interface HttpResponseWithRetries extends HttpRequestInit {
   retries?: number;
   backoffMs?: number;
-  onNotOkResponse?: (res: Response, decision: DecisionOnNotOkResponse) => DecisionOnNotOkResponse;
+  onNotOkResponse?: (res: Response, decision: DecisionOnNotOkResponse) => Promise<DecisionOnNotOkResponse>;
 }
 
 let _httpRequest = (
@@ -91,7 +91,7 @@ export const httpRequestWithRetry = async (
     const response = await httpRequest(url, options);
     if (!response.ok) {
       if (options.onNotOkResponse) {
-        decision = options.onNotOkResponse(response, decision);
+        decision = await options.onNotOkResponse(response, decision);
       }
 
       throw new Error(`HTTP error! status: ${response.status}`);
