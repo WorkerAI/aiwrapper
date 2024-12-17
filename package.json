@@ -7,7 +7,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/WorkerAI/aiwrapper.git"
+    "url": "git+https://github.com/WorkerAI/aiwrapper.git"
   },
   "homepage": "https://aiwrapper.org",
   "keywords": [
