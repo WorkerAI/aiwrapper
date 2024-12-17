@@ -2,7 +2,7 @@
   "type": "module",
   "name": "aiwrapper",
   "description": "A Universal AI Wrapper for JavaScript & TypeScript",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "author": "Dmitry Kury (https://dkury.com)",
   "license": "MIT",
   "repository": {
@@ -26,7 +26,7 @@
     "js_build/",
     "LICENSE"
   ],
-  "main": "./js_build/node-entry.js",
+  "main": "./js_build/npm-entry.js",
   "allowJs": true,
   "scripts": {
     "prebuild": "node ./node_builder/prebuild.js",

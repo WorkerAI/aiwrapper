@@ -1,5 +1,5 @@
 /**
- * Node package entry point.
+ * Npm package entry point.
  * Make sure to build with "npm run build" and run from /js_build folder.
  * The compiled JS build goes to /js_build.
  */
@@ -10,36 +10,35 @@ import { setHttpRequestImpl } from "./http-request.js";
 import { setProcessResponseStreamImpl } from "./process-response-stream.js";
 import processLinesFromStream from "./lang/process-lines-from-stream.js";
 
-let nodeFetch;
-const isInNodeServer = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
-if (isInNodeServer) {
+const needsCustomFetch = typeof fetch === 'undefined';
+if (needsCustomFetch) {
+  // For HTTP calls from Node.
+  // Because NodeJS doesn't have browser's fetch yet
   nodeFetch = await import('node-fetch').then(module => module.default);
+
+  setHttpRequestImpl((url, options) => {
+    return nodeFetch(url, options);
+  });
+} else {
+  setHttpRequestImpl((url, options) => {
+    // A regular browser's fetch
+    return fetch(url, options);
+  });
 }
 
-// For HTTP calls from Node.
-// Here we decide between "node-fetch" in NodeJS and a regular fetch in a browser to make HTTP requests
-setHttpRequestImpl((url, options) => {
-  if (isInNodeServer) {
-    // Because NodeJS doesn't have browser's fetch yet
-    return nodeFetch(url, options);
-  }
+const isNodeJs = typeof process !== 'undefined' &&
+  process.versions != null &&
+  process.versions.node != null;
+const needsCustomProcessResponseStream = isNodeJs;
 
-  // A regular browser's fetch
-  return fetch(url, options);
-});
-
-if (isInNodeServer) {
+if (needsCustomProcessResponseStream) {
   // For processing response streams from Node.
   setProcessResponseStreamImpl(async (response, onData) => {
     if (response.ok === false) {
-      throw new Error(
-        `Response from server was not ok. Status code: ${response.status}.`,
-      );
+      throw new Error(`Response from server was not ok. Status code: ${response.status}.`);
     }
-
     let rawData = "";
     const decoder = new TextDecoder("utf-8");
-
     const dataPromise = new Promise((resolve, reject) => {
       response.body.on('data', (chunk) => {
         rawData += decoder.decode(chunk);
@@ -50,16 +49,13 @@ if (isInNodeServer) {
           rawData = rawData.slice(lastIndex + 1);
         }
       });
-
       response.body.on('end', () => {
         resolve();
       });
-
       response.body.on('error', (err) => {
         reject(err);
       });
     });
-
     await dataPromise;
   });
 }
