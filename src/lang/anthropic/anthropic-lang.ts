@@ -15,16 +15,18 @@ export type AnthropicLangOptions = {
   apiKey: string;
   model?: LangModelNames;
   systemPrompt?: string;
+  maxTokens?: number;
 };
 
 export type AnthropicLangConfig = {
   apiKey: string;
   name: LangModelNames;
   systemPrompt?: string;
+  maxTokens: number;
 };
 
 export class AnthropicLang extends LanguageModel {
-  readonly name: string;
+  override readonly name: string;
   _config: AnthropicLangConfig;
 
   constructor(options: AnthropicLangOptions) {
@@ -34,6 +36,7 @@ export class AnthropicLang extends LanguageModel {
       apiKey: options.apiKey,
       name: modelName,
       systemPrompt: options.systemPrompt,
+      maxTokens: options.maxTokens || 4096,
     };
     this.name = this._config.name;
   }
@@ -120,12 +123,13 @@ export class AnthropicLang extends LanguageModel {
       headers: {
         "Content-Type": "application/json",
         "anthropic-version": "2023-06-01",
-        "x-api-key": this._config.apiKey,
+        "anthropic-dangerous-direct-browser-access": "true",
+        "x-api-key": this._config.apiKey
       },
       body: JSON.stringify({
         model: this._config.name,
         messages: messages,
-        max_tokens: 4096,
+        max_tokens: this._config.maxTokens,
         system: this._config.systemPrompt ? this._config.systemPrompt : detectedSystemMessage,
         stream: true,
       }),

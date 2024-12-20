@@ -15,12 +15,14 @@ export type OpenAILangOptions = {
   apiKey: string;
   model?: LangModelNames;
   systemPrompt?: string;
+  maxTokens?: number;
 };
 
 export type OpenAILangConfig = {
   apiKey: string;
   name: LangModelNames;
   systemPrompt: string;
+  maxTokens?: number;
 };
 
 export class OpenAILang extends LanguageModel {
@@ -33,6 +35,7 @@ export class OpenAILang extends LanguageModel {
       apiKey: options.apiKey,
       name: modelName,
       systemPrompt: options.systemPrompt || "",
+      maxTokens: options.maxTokens,
     };
   }
 
@@ -91,13 +94,14 @@ export class OpenAILang extends LanguageModel {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json", 
         "Authorization": `Bearer ${this._config.apiKey}`,
       },
       body: JSON.stringify({
         model: this._config.name,
         messages,
         stream: true,
+        ...(this._config.maxTokens && { max_completion_tokens: this._config.maxTokens }),
       }),
       onNotOkResponse: async (
         res,
