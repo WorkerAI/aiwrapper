@@ -25,11 +25,16 @@ export type OpenAILangConfig = {
   maxTokens?: number;
 };
 
+export type OpenAIChatMessage = {
+  role: "developer" | "user" | "assistant";
+  content: string;
+};
+
 export class OpenAILang extends LanguageModel {
   _config: OpenAILangConfig;
 
   constructor(options: OpenAILangOptions) {
-    const modelName = options.model || "gpt-4";
+    const modelName = options.model || "gpt-4o";
     super(modelName);
     this._config = {
       apiKey: options.apiKey,
@@ -68,6 +73,21 @@ export class OpenAILang extends LanguageModel {
       messages,
     );
 
+    // Transform the messages, e.g 'system' -> 'developer'
+    const transformedMessages: OpenAIChatMessage[] = messages.map((message) => {
+      if (message.role === "system" && this._config.name.includes("o1")) {
+        return { ...message, role: "user" };
+      }
+      else if (message.role === "system") {
+        return { ...message, role: "developer" };
+      }
+      else {
+        return { ...message, role: "user" };
+      }
+    });
+
+    console.log(transformedMessages);
+
     const onData = (data: any) => {
       if (data.finished) {
         result.finished = true;
@@ -82,7 +102,7 @@ export class OpenAILang extends LanguageModel {
 
         result.answer += deltaContent;
 
-        result.messages = [...messages, {
+        result.messages = [...transformedMessages, {
           role: "assistant",
           content: result.answer,
         }];
@@ -99,7 +119,7 @@ export class OpenAILang extends LanguageModel {
       },
       body: JSON.stringify({
         model: this._config.name,
-        messages,
+        messages: transformedMessages,
         stream: true,
         ...(this._config.maxTokens && { max_completion_tokens: this._config.maxTokens }),
       }),
