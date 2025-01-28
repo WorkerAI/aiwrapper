@@ -1,5 +1,5 @@
 import { LangChatMessages, LangResultWithMessages, LangResultWithString, LanguageModel } from "../language-model.ts";
-import { httpRequestWithRetry as fetch, DecisionOnNotOkResponse, } from "../../http-request.ts";
+import { httpRequestWithRetry as fetch } from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
 
 export type OllamaLangOptions = {

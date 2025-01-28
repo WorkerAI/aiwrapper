@@ -2,7 +2,7 @@
   "type": "module",
   "name": "aiwrapper",
   "description": "A Universal AI Wrapper for JavaScript & TypeScript",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "author": "Dmitry Kury (https://dkury.com)",
   "license": "MIT",
   "repository": {
@@ -16,11 +16,14 @@
     "OpenAI",
     "LLM",
     "Generative AI",
+    "GPT",
     "GPT-4",
     "Anthropic",
     "Groq",
     "Mistral",
-    "Llama"
+    "Llama",
+    "Ollama",
+    "DeepSeek"
   ],
   "files": [
     "js_build/",

@@ -1,4 +1,3 @@
-import { LangModelNames } from "../../info.ts";
 import {
   DecisionOnNotOkResponse,
   httpRequestWithRetry as fetch,
@@ -13,14 +12,14 @@ import {
 
 export type AnthropicLangOptions = {
   apiKey: string;
-  model?: LangModelNames;
+  model?: string;
   systemPrompt?: string;
   maxTokens?: number;
 };
 
 export type AnthropicLangConfig = {
   apiKey: string;
-  name: LangModelNames;
+  name: string;
   systemPrompt?: string;
   maxTokens: number;
 };
