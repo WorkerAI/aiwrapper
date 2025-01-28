@@ -1,7 +1,7 @@
 /**
  * Deno module entry point.
  * No need to build, Deno uses /src folder directly.
- * Npm package entry is in {@link /js_build/npm-entry.js}.
+ * Npm package entry is in {@link /dist/npm-entry.js}.
  */
 
 import { setHttpRequestImpl } from "./src/http-request.ts";

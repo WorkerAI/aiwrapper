@@ -1,15 +1,15 @@
 # AIWrapper
 A universal AI wrapper for JavaScript & TypeScript.
 
-Generate text, images, and voice from anywhere—servers, browsers and apps. AIWrapper works in anything that runs JavaScript.
+Use LLMs from anywhere—servers, browsers and web-apps. AIWrapper works in anything that runs JavaScript.
 
 > :warning: **It's in early WIP stage and the API may change.**
 
 
 ## Features
-- Generate text, images, and voice with a simple API
-- Easily calculate cost of usage
-- Output objects based on needed schemas from LLMs
+- Generate plain text or JSON objects with a simple API
+- Use different LLM providers: OpenAI, Anthropic, Groq, DeepSeek, Ollama and any OpenAI-compatible services
+- Output objects based on needed schemas
 - Swap models quickly or chain different models together
 - Use it with JavaScript or TypeScript from anywhere
 
@@ -37,26 +37,6 @@ const result = await lang.ask("Say hi!");
 console.log(result);
 ```
 
-### Generate Image (Conming Soon)
-```javascript
-import { Img } from "aiwrapper";
-
-const img = Img.openai({ apiKey: "YOUR KEY" });
-const image = await img.ask('A portrait of a cute cat');
-
-console.log(image);
-```
-
-### Generate Voice (Conming Soon)
-```javascript
-import { Speech } from "aiwrapper";
-
-const speech = Speech.elevenlabs({ apiKey: "YOUR KEY" });
-const audio = speech.ask('Hello, world!');
-
-console.log(audio.length);
-```
-
 ## Lang (LLM) Examples
 
 ### Initialize a Model
@@ -68,7 +48,7 @@ const lang = Lang.openai({ apiKey: "YOUR KEY" }); // or Lang.anthropic
 
 ### Stream Results
 ```javascript
-await lang.ask('Hello, AI!', streamingResult => {vs
+await lang.ask('Hello, AI!', streamingResult => {
   console.log(streamingResult.answer);
 });
 ```
@@ -117,15 +97,15 @@ const names = await askForCompanyNames();
 ### Chaining Prompts
 ```javascript
 async function askForStoriesBehindTheNames() {
-  // We can use an answer in other prompts. Here we ask to come up with stores for all of the names we've got.
+  // We can use an answer in other prompts. Here we ask to come up with stories for all of the names we've got.
   const names = await askForCompanyNames();
   const stories = [];
 
   for (const name of names) {
     const story = await lang.askForObject({
       instructions: [
-        `You are a professional writer and a storiteller.`,
-        `Look at the name "${name}" carefully and reason step-by-step about the meaning of the name and what is the potential story behing it.`,
+        `You are a professional writer and a storyteller.`,
+        `Look at the name "${name}" carefully and reason step-by-step about the meaning of the name and what is the potential story behind it.`,
         `Write a short story. Don't include any comments or characters that are not part of the story.`,
       ],
       objectExamples: [
@@ -192,11 +172,3 @@ async function getTask() {
 
 const task = await getTask();
 ```
-
-### Calculating Cost
-```javascript
-// We can get the cost of using models from result.totalCost
-const result = await lang.ask('Say a nice hello in about 200 characters');
-console.log(result.totalCost);
-```
-

@@ -26,10 +26,10 @@
     "DeepSeek"
   ],
   "files": [
-    "js_build/",
+    "dist/",
     "LICENSE"
   ],
-  "main": "./js_build/npm-entry.js",
+  "main": "./dist/npm-entry.js",
   "allowJs": true,
   "scripts": {
     "prebuild": "node ./node_builder/prebuild.js",

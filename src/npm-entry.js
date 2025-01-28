@@ -1,7 +1,7 @@
 /**
  * Npm package entry point.
- * Make sure to build with "npm run build" and run from /js_build folder.
- * The compiled JS build goes to /js_build.
+ * Make sure to build with "npm run build" and run from /dist folder.
+ * The compiled JS build goes to /dist.
  */
 
 // **NOTE**: we import with ".js" because this will work with compiled JS files, not

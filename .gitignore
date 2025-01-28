@@ -95,6 +95,6 @@ dist
 .env.production.local
 
 
-/js_build
+/dist
 /temp_node_source
 /dev_tests
