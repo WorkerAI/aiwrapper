@@ -7,9 +7,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/WorkerAI/aiwrapper.git"
+    "url": "git+https://github.com/mitkury/aiwrapper.git"
   },
-  "homepage": "https://aiwrapper.org",
+  "bugs": {
+    "url": "https://github.com/mitkury/aiwrapper/issues"
+  },
+  "homepage": "https://github.com/mitkury/aiwrapper#readme",
   "keywords": [
     "AI",
     "AI Wrappers",
@@ -34,13 +37,19 @@
   "scripts": {
     "prebuild": "node ./node_builder/prebuild.js",
     "build": "tsc",
-    "postbuild": "node ./node_builder/postbuild.js"
+    "postbuild": "node ./node_builder/postbuild.js",
+    "test": "deno test tests/npm/test.ts --allow-env --allow-net --allow-read",
+    "test:watch": "deno test --watch tests/npm/test.ts --allow-env --allow-net --allow-read"
   },
   "dependencies": {
+    "aimodels": "^0.2.4",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
-    "glob": "^10.3.9",
-    "typescript": "^5.2.2"
+    "glob": "^11.0.1",
+    "typescript": "^5.7.3",
+    "ts-node": "^10.9.2",
+    "dotenv": "^16.4.1",
+    "@types/node": "^20.11.16"
   }
 }

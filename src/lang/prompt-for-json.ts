@@ -1,3 +1,7 @@
+// @TODO: change to use schema instead of objectExamples
+
+// Consider: instructions, schema, objects, examples (?)
+
 export type PromptForObject = {
   // @TODO: make title and description optional
   title?: string;

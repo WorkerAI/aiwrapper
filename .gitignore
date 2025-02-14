@@ -27,6 +27,12 @@ jspm_packages/
 # TypeScript cache
 *.tsbuildinfo
 
+# AI rules specific to editors
+.cursorrules
+.windsurfrules
+.clinerules
+.github/copilot-instructions.md
+
 # Optional npm cache directory
 .npm
 
@@ -94,6 +100,8 @@ dist
 .env.test.local
 .env.production.local
 
+# Test configuration
+test.config.json
 
 /dist
 /temp_node_source
