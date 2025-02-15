@@ -9,6 +9,7 @@ import {
   httpRequestWithRetry as fetch,
 } from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
+import { models, Model } from 'aimodels';
 
 export type OpenAILikeConfig = {
   apiKey: string;
@@ -20,9 +21,21 @@ export type OpenAILikeConfig = {
 
 export abstract class OpenAILikeLang extends LanguageModel {
   protected _config: OpenAILikeConfig;
+  protected modelInfo?: Model;
 
   constructor(config: OpenAILikeConfig) {
     super(config.name);
+    
+    // Try to get model info from aimodels
+    const modelInfo = models.id(config.name);
+    if (modelInfo) {
+      // Use context window from aimodels if maxTokens not specified
+      config.maxTokens = config.maxTokens || modelInfo.context.maxOutput;
+      this.modelInfo = modelInfo;
+    }
+
+    // TODO: let's call an exception
+    
     this._config = config;
   }
 
@@ -50,6 +63,33 @@ export abstract class OpenAILikeLang extends LanguageModel {
   protected transformMessages(messages: LangChatMessages): LangChatMessages {
     // By default, no transformation
     return messages;
+  }
+
+  // Rough estimate: 1 token ≈ 4 chars for English text
+  protected estimateTokens(text: string): number {
+    return Math.ceil(text.length / 4);
+  }
+
+  protected calculateMaxTokens(
+    messages: LangChatMessages,
+    modelContextTotal: number,
+    modelMaxOutput: number
+  ): number {
+    // Calculate estimated tokens in messages
+    const estimatedInputTokens = messages.reduce((total, msg) => {
+      return total + this.estimateTokens(msg.content);
+    }, 0);
+
+    // Add some overhead for message formatting (roles, etc)
+    const overhead = messages.length * 4;
+    
+    const availableTokens = modelContextTotal - estimatedInputTokens - overhead;
+    
+    // Use either the model's maxOutput or the available tokens, whichever is smaller
+    return Math.min(
+      modelMaxOutput,
+      availableTokens
+    );
   }
 
   async chat(
