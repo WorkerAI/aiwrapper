@@ -1,17 +1,21 @@
 import { LangChatMessages, LangResultWithMessages, LangResultWithString, LanguageModel } from "../language-model.ts";
 import { httpRequestWithRetry as fetch } from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
+import { models } from 'aimodels';
+import { calculateModelResponseTokens } from "../utils/token-calculator.ts";
 
 export type OllamaLangOptions = {
   url?: string;
   model: string;
   systemPrompt?: string;
+  maxTokens?: number;
 };
 
 export type OllamaLangConfig = {
   url: string;
   model: string;
   systemPrompt: string;
+  maxTokens?: number;
 };
 
 export class OllamaLang extends LanguageModel {
@@ -20,11 +24,24 @@ export class OllamaLang extends LanguageModel {
   constructor(options: OllamaLangOptions) {
     const model = options.model;
     super(model);
+
+    // Try to get model info from aimodels
+    const modelInfo = models.id(model);
+
     this._config = {
       url: options.url || "http://localhost:11434",
       model,
       systemPrompt: options.systemPrompt ? options.systemPrompt : '',
+      maxTokens: options.maxTokens,
     };
+
+    // If we have model info, validate maxTokens against model's context
+    if (modelInfo && this._config.maxTokens) {
+      this._config.maxTokens = Math.min(
+        this._config.maxTokens,
+        modelInfo.context.maxOutput
+      );
+    }
   }
 
   async ask(
@@ -32,6 +49,18 @@ export class OllamaLang extends LanguageModel {
     onResult?: (result: LangResultWithString) => void,
   ): Promise<LangResultWithString> {
     const result = new LangResultWithString(prompt);
+
+    // Try to get model info and calculate max tokens
+    const modelInfo = models.id(this._config.model);
+    let requestMaxTokens = this._config.maxTokens;
+
+    if (modelInfo) {
+      requestMaxTokens = calculateModelResponseTokens(
+        modelInfo,
+        [{ role: "user", content: prompt }],
+        this._config.maxTokens
+      );
+    }
 
     const onData = (data: any) => {
       if (data.done) {
@@ -55,7 +84,8 @@ export class OllamaLang extends LanguageModel {
       body: JSON.stringify({
         model: this._config.model,
         prompt,
-        stream: true
+        stream: true,
+        ...(requestMaxTokens && { num_predict: requestMaxTokens })
       }),
     })
       .catch((err) => {
@@ -71,6 +101,18 @@ export class OllamaLang extends LanguageModel {
     const result = new LangResultWithMessages(
       messages,
     );
+
+    // Try to get model info and calculate max tokens
+    const modelInfo = models.id(this._config.model);
+    let requestMaxTokens = this._config.maxTokens;
+
+    if (modelInfo) {
+      requestMaxTokens = calculateModelResponseTokens(
+        modelInfo,
+        messages,
+        this._config.maxTokens
+      );
+    }
 
     const onData = (data: any) => {
       if (data.done) {
@@ -92,6 +134,7 @@ export class OllamaLang extends LanguageModel {
         model: this._config.model,
         messages,
         stream: true,
+        ...(requestMaxTokens && { num_predict: requestMaxTokens }),
       })
     })
       .catch((err) => {
