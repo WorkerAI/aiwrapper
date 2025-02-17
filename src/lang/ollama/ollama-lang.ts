@@ -69,8 +69,8 @@ export class OllamaLang extends LanguageModel {
         return;
       }
 
-      if (data.message && data.message.content) {
-        result.answer += data.message.content;
+      if (data.response) {
+        result.answer += data.response;
       }
 
       onResult?.(result);
