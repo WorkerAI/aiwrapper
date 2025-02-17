@@ -9,6 +9,8 @@ import {
   LangResultWithString,
   LanguageModel,
 } from "../language-model.ts";
+import { models } from 'aimodels';
+import { calculateModelResponseTokens } from "../utils/token-calculator.ts";
 
 export type AnthropicLangOptions = {
   apiKey: string;
@@ -21,7 +23,7 @@ export type AnthropicLangConfig = {
   apiKey: string;
   name: string;
   systemPrompt?: string;
-  maxTokens: number;
+  maxTokens?: number;
 };
 
 export class AnthropicLang extends LanguageModel {
@@ -31,11 +33,18 @@ export class AnthropicLang extends LanguageModel {
   constructor(options: AnthropicLangOptions) {
     const modelName = options.model || "claude-3-5-sonnet-20240620";
     super(modelName);
+
+    // Get model info from aimodels
+    const modelInfo = models.id(modelName);
+    if (!modelInfo) {
+      throw new Error(`Invalid Anthropic model: ${modelName}. Model not found in aimodels database.`);
+    }
+
     this._config = {
       apiKey: options.apiKey,
       name: modelName,
       systemPrompt: options.systemPrompt,
-      maxTokens: options.maxTokens || 4096,
+      maxTokens: options.maxTokens,
     };
     this.name = this._config.name;
   }
@@ -79,8 +88,18 @@ export class AnthropicLang extends LanguageModel {
       return true;
     });
 
-    const result = new LangResultWithMessages(
+    const result = new LangResultWithMessages(messages);
+
+    // Get model info and calculate max tokens
+    const modelInfo = models.id(this._config.name);
+    if (!modelInfo) {
+      throw new Error(`Model info not found for ${this._config.name}`);
+    }
+
+    const requestMaxTokens = calculateModelResponseTokens(
+      modelInfo,
       messages,
+      this._config.maxTokens
     );
 
     const onData = (data: any) => {
@@ -128,7 +147,7 @@ export class AnthropicLang extends LanguageModel {
       body: JSON.stringify({
         model: this._config.name,
         messages: messages,
-        max_tokens: this._config.maxTokens,
+        max_tokens: requestMaxTokens,
         system: this._config.systemPrompt ? this._config.systemPrompt : detectedSystemMessage,
         stream: true,
       }),

@@ -10,6 +10,7 @@ import {
 } from "../../http-request.ts";
 import { processResponseStream } from "../../process-response-stream.ts";
 import { models, Model } from 'aimodels';
+import { calculateModelResponseTokens } from "../utils/token-calculator.ts";
 
 export type OpenAILikeConfig = {
   apiKey: string;
@@ -21,21 +22,18 @@ export type OpenAILikeConfig = {
 
 export abstract class OpenAILikeLang extends LanguageModel {
   protected _config: OpenAILikeConfig;
-  protected modelInfo?: Model;
+  protected modelInfo: Model;
 
   constructor(config: OpenAILikeConfig) {
     super(config.name);
-    
-    // Try to get model info from aimodels
+
+    // Get model info from aimodels - required for OpenAI-like APIs
     const modelInfo = models.id(config.name);
-    if (modelInfo) {
-      // Use context window from aimodels if maxTokens not specified
-      config.maxTokens = config.maxTokens || modelInfo.context.maxOutput;
-      this.modelInfo = modelInfo;
+    if (!modelInfo) {
+      throw new Error(`Invalid model: ${config.name}. Model not found in aimodels database.`);
     }
 
-    // TODO: let's call an exception
-    
+    this.modelInfo = modelInfo;
     this._config = config;
   }
 
@@ -82,9 +80,9 @@ export abstract class OpenAILikeLang extends LanguageModel {
 
     // Add some overhead for message formatting (roles, etc)
     const overhead = messages.length * 4;
-    
+
     const availableTokens = modelContextTotal - estimatedInputTokens - overhead;
-    
+
     // Use either the model's maxOutput or the available tokens, whichever is smaller
     return Math.min(
       modelMaxOutput,
@@ -98,6 +96,13 @@ export abstract class OpenAILikeLang extends LanguageModel {
   ): Promise<LangResultWithMessages> {
     const result = new LangResultWithMessages(messages);
     const transformedMessages = this.transformMessages(messages);
+
+    // Calculate max tokens for the request
+    const requestMaxTokens = calculateModelResponseTokens(
+      this.modelInfo,
+      transformedMessages,
+      this._config.maxTokens
+    );
 
     const onData = (data: any) => {
       if (data.finished) {
@@ -132,7 +137,7 @@ export abstract class OpenAILikeLang extends LanguageModel {
         model: this._config.name,
         messages: transformedMessages,
         stream: true,
-        ...(this._config.maxTokens && { max_tokens: this._config.maxTokens }),
+        max_tokens: requestMaxTokens,
       }),
       onNotOkResponse: async (
         res,
