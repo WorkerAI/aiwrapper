@@ -42,14 +42,14 @@
     "test:watch": "deno test --watch tests/npm/test.ts --allow-env --allow-net --allow-read"
   },
   "dependencies": {
-    "aimodels": "^0.3.2",
+    "aimodels": "^0.3.3",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
-    "glob": "^11.0.1",
-    "typescript": "^5.7.3",
-    "ts-node": "^10.9.2",
+    "@types/node": "^20.11.16",
     "dotenv": "^16.4.1",
-    "@types/node": "^20.11.16"
+    "glob": "^11.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
   }
 }

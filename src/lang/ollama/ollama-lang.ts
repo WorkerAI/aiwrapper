@@ -36,7 +36,7 @@ export class OllamaLang extends LanguageModel {
     };
 
     // If we have model info, validate maxTokens against model's context
-    if (modelInfo && this._config.maxTokens) {
+    if (modelInfo && this._config.maxTokens && modelInfo.context?.maxOutput) {
       this._config.maxTokens = Math.min(
         this._config.maxTokens,
         modelInfo.context.maxOutput
