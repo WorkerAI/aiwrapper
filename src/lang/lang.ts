@@ -3,6 +3,7 @@ import { AnthropicLang, AnthropicLangOptions  } from "./anthropic/anthropic-lang
 import { OllamaLang, OllamaLangOptions } from "./ollama/ollama-lang.ts";
 import { GroqLang, GroqLangOptions } from "./groq/groq-lang.ts";
 import { DeepSeekLang, DeepSeekLangOptions } from "./deepseek/deepseek-lang.ts";
+import { XAILang, XAILangOptions } from "./xai/xai-lang.ts";
 
 /**
  * Lang is a factory class for using language models from different providers. 
@@ -26,5 +27,9 @@ export abstract class Lang {
 
   static deepseek(options: DeepSeekLangOptions): DeepSeekLang {
     return new DeepSeekLang(options);
+  }
+
+  static xai(options: XAILangOptions): XAILang {
+    return new XAILang(options);
   }
 }
