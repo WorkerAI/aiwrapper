@@ -5,6 +5,7 @@ import { GroqLang, GroqLangOptions } from "./groq/groq-lang.ts";
 import { DeepSeekLang, DeepSeekLangOptions } from "./deepseek/deepseek-lang.ts";
 import { XAILang, XAILangOptions } from "./xai/xai-lang.ts";
 import { GoogleLang, GoogleLangOptions } from "./google/google-lang.ts";
+import { CohereLang, CohereLangOptions } from "./cohere/cohere-lang.ts";
 
 /**
  * Lang is a factory class for using language models from different providers. 
@@ -36,5 +37,9 @@ export abstract class Lang {
 
   static google(options: GoogleLangOptions): GoogleLang {
     return new GoogleLang(options);
+  }
+
+  static cohere(options: CohereLangOptions): CohereLang {
+    return new CohereLang(options);
   }
 }
