@@ -4,6 +4,7 @@ import { OllamaLang, OllamaLangOptions } from "./ollama/ollama-lang.ts";
 import { GroqLang, GroqLangOptions } from "./groq/groq-lang.ts";
 import { DeepSeekLang, DeepSeekLangOptions } from "./deepseek/deepseek-lang.ts";
 import { XAILang, XAILangOptions } from "./xai/xai-lang.ts";
+import { GoogleLang, GoogleLangOptions } from "./google/google-lang.ts";
 
 /**
  * Lang is a factory class for using language models from different providers. 
@@ -31,5 +32,9 @@ export abstract class Lang {
 
   static xai(options: XAILangOptions): XAILang {
     return new XAILang(options);
+  }
+
+  static google(options: GoogleLangOptions): GoogleLang {
+    return new GoogleLang(options);
   }
 }
