@@ -18,6 +18,7 @@ export type OpenAILikeConfig = {
   systemPrompt: string;
   maxTokens?: number;
   baseURL: string;
+  headers?: Record<string, string>;
 };
 
 export abstract class OpenAILikeLang extends LanguageModel {
@@ -134,6 +135,7 @@ export abstract class OpenAILikeLang extends LanguageModel {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${this._config.apiKey}`,
+        ...this._config.headers,
       },
       body: JSON.stringify({
         model: this._config.name,

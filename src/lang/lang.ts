@@ -6,6 +6,7 @@ import { DeepSeekLang, DeepSeekLangOptions } from "./deepseek/deepseek-lang.ts";
 import { XAILang, XAILangOptions } from "./xai/xai-lang.ts";
 import { GoogleLang, GoogleLangOptions } from "./google/google-lang.ts";
 import { CohereLang, CohereLangOptions } from "./cohere/cohere-lang.ts";
+import { OpenRouterLang, OpenRouterLangOptions } from "./openrouter/openrouter-lang.ts";
 
 /**
  * Lang is a factory class for using language models from different providers. 
@@ -41,5 +42,9 @@ export abstract class Lang {
 
   static cohere(options: CohereLangOptions): CohereLang {
     return new CohereLang(options);
+  }
+
+  static openrouter(options: OpenRouterLangOptions): OpenRouterLang {
+    return new OpenRouterLang(options);
   }
 }
