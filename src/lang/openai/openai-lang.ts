@@ -37,7 +37,7 @@ export class OpenAILang extends OpenAILikeLang {
       baseURL: "https://api.openai.com/v1",
     });
     
-    // Validate that we found the model in aimodels
+    // For OpenAI, we require the model to be in aimodels database
     if (!this.modelInfo) {
       throw new Error(`Invalid OpenAI model: ${modelName}. Model not found in aimodels database.`);
     }

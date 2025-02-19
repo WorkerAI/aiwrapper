@@ -22,18 +22,14 @@ export type OpenAILikeConfig = {
 
 export abstract class OpenAILikeLang extends LanguageModel {
   protected _config: OpenAILikeConfig;
-  protected modelInfo: Model;
+  protected modelInfo?: Model;
 
   constructor(config: OpenAILikeConfig) {
     super(config.name);
 
-    // Get model info from aimodels - required for OpenAI-like APIs
+    // Get model info from aimodels - it's optional now
     const modelInfo = models.id(config.name);
-    if (!modelInfo) {
-      throw new Error(`Invalid model: ${config.name}. Model not found in aimodels database.`);
-    }
-
-    this.modelInfo = modelInfo;
+    this.modelInfo = modelInfo; // can be undefined
     this._config = config;
   }
 
@@ -73,6 +69,10 @@ export abstract class OpenAILikeLang extends LanguageModel {
     modelContextTotal: number,
     modelMaxOutput: number
   ): number {
+    // If we don't have model info, use conservative defaults
+    const contextWindow = this.modelInfo?.context?.total || 4000;
+    const maxOutput = this.modelInfo?.context?.maxOutput || 1000;
+
     // Calculate estimated tokens in messages
     const estimatedInputTokens = messages.reduce((total, msg) => {
       return total + this.estimateTokens(msg.content);
@@ -81,11 +81,11 @@ export abstract class OpenAILikeLang extends LanguageModel {
     // Add some overhead for message formatting (roles, etc)
     const overhead = messages.length * 4;
 
-    const availableTokens = modelContextTotal - estimatedInputTokens - overhead;
+    const availableTokens = contextWindow - estimatedInputTokens - overhead;
 
     // Use either the model's maxOutput or the available tokens, whichever is smaller
     return Math.min(
-      modelMaxOutput,
+      maxOutput,
       availableTokens
     );
   }
@@ -97,12 +97,14 @@ export abstract class OpenAILikeLang extends LanguageModel {
     const result = new LangResultWithMessages(messages);
     const transformedMessages = this.transformMessages(messages);
 
-    // Calculate max tokens for the request
-    const requestMaxTokens = calculateModelResponseTokens(
-      this.modelInfo,
-      transformedMessages,
-      this._config.maxTokens
-    );
+    // Calculate max tokens for the request, using model info if available
+    const requestMaxTokens = this.modelInfo 
+      ? calculateModelResponseTokens(
+          this.modelInfo,
+          transformedMessages,
+          this._config.maxTokens
+        )
+      : this._config.maxTokens || 4000; // Default if no model info or maxTokens
 
     const onData = (data: any) => {
       if (data.finished) {
