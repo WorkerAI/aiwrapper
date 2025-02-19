@@ -39,7 +39,7 @@ export class OpenAILang extends OpenAILikeLang {
     
     // For OpenAI, we require the model to be in aimodels database
     if (!this.modelInfo) {
-      throw new Error(`Invalid OpenAI model: ${modelName}. Model not found in aimodels database.`);
+      console.error(`Invalid OpenAI model: ${modelName}. Model not found in aimodels database.`);
     }
   }
 

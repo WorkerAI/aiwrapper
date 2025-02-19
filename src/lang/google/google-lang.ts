@@ -23,19 +23,19 @@ export class GoogleLang extends LanguageModel {
   private _model: string;
   private _systemPrompt: string;
   private _maxTokens?: number;
-  //private modelInfo: Model;
+  private modelInfo?: Model;
 
   constructor(options: GoogleLangOptions) {
-    const modelName = options.model || "gemini-pro";
+    const modelName = options.model || "gemini-2.0-flash";
     super(modelName);
 
     // Get model info from aimodels
     const modelInfo = models.id(modelName);
     if (!modelInfo) {
-      //throw new Error(`Invalid Google model: ${modelName}. Model not found in aimodels database.`);
+      console.error(`Invalid Google model: ${modelName}. Model not found in aimodels database.`);
     }
 
-    //this.modelInfo = modelInfo;
+    this.modelInfo = modelInfo;
     this._apiKey = options.apiKey;
     this._model = modelName;
     this._systemPrompt = options.systemPrompt || "";

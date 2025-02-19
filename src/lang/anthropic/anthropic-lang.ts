@@ -37,7 +37,7 @@ export class AnthropicLang extends LanguageModel {
     // Get model info from aimodels
     const modelInfo = models.id(modelName);
     if (!modelInfo) {
-      throw new Error(`Invalid Anthropic model: ${modelName}. Model not found in aimodels database.`);
+      console.error(`Invalid Anthropic model: ${modelName}. Model not found in aimodels database.`);
     }
 
     this._config = {
