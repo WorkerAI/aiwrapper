@@ -42,7 +42,7 @@
     "test:watch": "deno test --watch tests/npm/test.ts --allow-env --allow-net --allow-read"
   },
   "dependencies": {
-    "aimodels": "^0.3.5",
+    "aimodels": "^0.3.7",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
